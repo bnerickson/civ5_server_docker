@@ -1,23 +1,26 @@
+import asyncio
 import json
-from smtpd import SMTPServer
-import asyncore
+import mailparser
 import re
 import os
 
-import boto3
-import mailparser
+
+from aiosmtpd.controller import Controller
+
 
 DEBUG = True
 
-client = boto3.client('sns', region_name="us-east-2")
 url_regex = r"<a\s*href=\"(.*)\">"
 bcc_regex = r"Bcc: (.*)"
 
-SNS_TOPIC_ARN = os.environ['SMTP_SERVER_SNS_TOPIC_ARN']
 
+class PrintEmailsServer:
+    async def handle_DATA(self, server, session, envelope):
+        peer = session.peer
+        mail_from = envelope.mail_from
+        rcpttos = envelope.rcpt_tos
+        data = envelope.content
 
-class PrintEmailsServer(SMTPServer):
-    def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         if DEBUG:
             print("-------------------------------------")
             print(peer)
@@ -43,33 +46,17 @@ class PrintEmailsServer(SMTPServer):
             print("-------")
             print(mail.bcc)
 
-        sns_message = {
-            "turn_num": mail.subject.split(" ")[-1],
-            "join_url": re.search(url_regex, mail.body).groups()[0] if re.search(url_regex, mail.body) else "",
-            "users": [
-                {
-                    "steam_username": email_tuple[0],
-                    "provided_email": email_tuple[1]
-                }
-                for email_tuple in mail.bcc
-            ]
-        }
-
-        client.publish(
-            TopicArn=SNS_TOPIC_ARN,
-            Message=json.dumps(sns_message)
-        )
-
 
 def main():
     print("Starting SMTP listener on 127.0.0.1:1025...")
-    PrintEmailsServer(('127.0.0.1', 1025), None, decode_data=True)
-    try:
-        asyncore.loop()
-    except KeyboardInterrupt:
-        pass
+    handler = PrintEmailsServer()
+    controller = Controller(handler, hostname='127.0.0.1', port=1025)
+    # Run the event loop in a separate thread.
+    controller.start()
+    # Wait for the user to press Return.
+    input('SMTP server running. Press Return to stop server and exit.')
+    controller.stop()
 
 
 if __name__ == "__main__":
     main()
-

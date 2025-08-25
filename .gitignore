@@ -3,6 +3,8 @@ civ5game/*
 !civ5game/README.md
 civ5save/*
 !civ5save/README.md
+!civ5save/GraphicsSettingsDX9.ini
+!civ5save/UserSettings.ini
 
 # During Civ 5 installation, a `temp` dir is created
 temp

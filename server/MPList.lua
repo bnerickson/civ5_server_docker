@@ -25,22 +25,22 @@ local DiploRequestOutgoing = Locale.ConvertTextKey( "TXT_KEY_DIPLO_REQUEST_OUTGO
 local PlayerConnectedStr = Locale.ConvertTextKey( "TXT_KEY_MP_PLAYER_CONNECTED" );
 local PlayerConnectingStr = Locale.ConvertTextKey( "TXT_KEY_MP_PLAYER_CONNECTING" );
 local PlayerNotConnectedStr = Locale.ConvertTextKey( "TXT_KEY_MP_PLAYER_NOTCONNECTED" );
-     
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function IsActiveHuman( pPlayer )
-	-- Is this player really controlled by a human player?  
+	-- Is this player really controlled by a human player?
 	-- This check handles the fact that pPlayer:IsHuman() returns true for unoccupied observer slots. DOH!
 	return (Network.IsPlayerConnected(pPlayer:GetID()) or (pPlayer:IsHuman() and not pPlayer:IsObserver()));
-end     
-     
+end
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function MPListSort( a, b )
      local aScore = g_SortTable[ tostring( a ) ];
      local bScore = g_SortTable[ tostring( b ) ];
-        
+
      return aScore > bScore;
 end
 
@@ -58,14 +58,14 @@ end
 -------------------------------------------------------------------------------
 function BuildStaticTeamsList()
      for iPlayer = 0, GameDefines.MAX_MAJOR_CIVS - 1 do
-    
+
         local pPlayer = Players[ iPlayer ];
-        
+
         local bIsObserver = (pPlayer:IsObserver() and (PreGame.GetSlotClaim(pPlayer:GetID()) == SlotClaim.SLOTCLAIM_ASSIGNED));
         if( pPlayer:IsAlive() or bIsObserver ) then
             local iTeam = pPlayer:GetTeam();
             local pTeam = Teams[ iTeam ];
-            
+
             if( pTeam:GetNumMembers() == 1 and not bIsObserver) then
                 g_TeamData[ iTeam ] = pPlayer;
             else
@@ -97,7 +97,7 @@ function UpdatePingTimeLabel( kControl, playerID )
 		end
 	else
 		kControl:SetHide( true );
-	end					
+	end
 end
 
 -------------------------------------------------
@@ -108,7 +108,7 @@ function OnPingTimesChanged()
 	    for playerID, controlTable in pairs( g_PlayerEntries ) do
 
 			local pPlayer = Players[ playerID ];
-			
+
 			--if( playerID ~= Game.GetActivePlayer() ) then
 				if (controlTable ~= nil and not controlTable.Ping:IsHidden()) then
 					if ((pPlayer:IsAlive() or pPlayer:IsObserver()) and pPlayer:IsHuman()) then
@@ -117,7 +117,7 @@ function OnPingTimesChanged()
 						controlTable.Ping:SetHide( true );
 					end
 				end
-			--end	
+			--end
 		end
     end
 end
@@ -134,7 +134,7 @@ function UpdatePlayerData( pPlayer, controlTable )
 	local bIsLocalPlayer = pPlayer:GetID() == Game.GetActivePlayer();
 	local bIsNetworkMP = Game.IsNetworkMultiPlayer();
 	local bIsPitboss = Game.IsOption("GAMEOPTION_PITBOSS");
-	
+
 	-- Hide dead players
 	if(not pPlayer:IsAlive() and not pPlayer:IsObserver()) then
 		controlTable.Root:SetHide(true);
@@ -153,42 +153,42 @@ function UpdatePlayerData( pPlayer, controlTable )
 		controlTable.ConnectedBox:SetHide(false);
 		controlTable.DiploBox:SetHide(false);
 		if(g_bShowPings) then
-			controlTable.PingBox:SetHide(false);	
+			controlTable.PingBox:SetHide(false);
 			controlTable.Ping:SetHide( not bIsHuman or bIsLocalPlayer );
 		else
-			controlTable.PingBox:SetHide(true);	
+			controlTable.PingBox:SetHide(true);
 		end
 	elseif(PreGame.IsHotSeatGame()) then
 		-- hotseat
 		controlTable.KickBox:SetHide(true);
 		controlTable.HostBox:SetHide(true);
 		controlTable.ConnectedBox:SetHide(true);
-		controlTable.DiploBox:SetHide(false);	
-		controlTable.PingBox:SetHide(true);			
+		controlTable.DiploBox:SetHide(false);
+		controlTable.PingBox:SetHide(true);
 	else
-		-- singleplayer 
+		-- singleplayer
 		controlTable.KickBox:SetHide(true);
 		controlTable.HostBox:SetHide(true);
 		controlTable.ConnectedBox:SetHide(true);
-		controlTable.DiploBox:SetHide(true);	
-		controlTable.PingBox:SetHide(true);	
+		controlTable.DiploBox:SetHide(true);
+		controlTable.PingBox:SetHide(true);
 	end
-		
+
 	-- Determine the size of player entry
 	controlTable.PlayerDataStack:CalculateSize();
 	controlTable.Root:SetSizeX(controlTable.PlayerDataStack:GetSizeX());
-	
+
 	-- Update click entry.
 	controlTable.ClickEntry:SetSizeX(controlTable.PlayerDataStack:GetSizeX());
 	controlTable.ClickEntry:SetHide( not bIsNetworkMP );
-	
+
 	-- Update seperator size
 	controlTable.Seperator:SetSizeX( controlTable.PlayerDataStack:GetSizeX() - SEPARATOR_MARGIN);
-	
+
     -- name
     if( bIsHuman ) then
 			local activePlayer = Game.GetActivePlayer();
-			if( Game.IsGameMultiPlayer() == false and bIsLocalPlayer ) then         
+			if( Game.IsGameMultiPlayer() == false and bIsLocalPlayer ) then
 				controlTable.Name:LocalizeAndSetText( "TXT_KEY_YOU" );
 			elseif( pPlayer:IsObserver() and not Network.IsPlayerConnected(pPlayer:GetID()) ) then
 				-- empty observer slot
@@ -196,18 +196,18 @@ function UpdatePlayerData( pPlayer, controlTable )
 			else
 				controlTable.Name:SetText(pPlayer:GetNickName());
       end
-            
+
       if (g_bShowPings) then
 				UpdatePingTimeLabel( controlTable.Ping, pPlayer:GetID() );
 			end
-    else
+      else
 			if( bMet ) then
 				controlTable.Name:SetText( pPlayer:GetName() );
-       else
+      else
 				controlTable.Name:LocalizeAndSetText( "TXT_KEY_POP_VOTE_RESULTS_UNMET_PLAYER" );
 			end
     end
-    
+
     -- icon
     CivIconHookup( bMet and pPlayer:GetID() or -1, 32, controlTable.Icon, controlTable.CivIconBG, controlTable.CivIconShadow, false, true );
 
@@ -218,15 +218,15 @@ function UpdatePlayerData( pPlayer, controlTable )
     else
         controlTable.Name:SetColorByName( "White" );
     end
-    
+
     -- score
     controlTable.Score:SetText( pPlayer:GetScore() );
 	if(sortByPlayerID(pPlayer)) then
 		g_SortTable[ tostring( controlTable.Root ) ] = GameDefines.MAX_PLAYERS - pPlayer:GetID();
 	else
-    	g_SortTable[ tostring( controlTable.Root ) ] = pPlayer:GetScore();
+	g_SortTable[ tostring( controlTable.Root ) ] = pPlayer:GetScore();
 	end
-	
+
 	if(pPlayer:IsObserver()) then
 		controlTable.Score:SetHide(true);
 	end
@@ -241,7 +241,7 @@ function UpdatePlayerData( pPlayer, controlTable )
         controlTable.Name:SetAlpha( 1 );
         controlTable.IconBox:SetAlpha( 1 );
     end
-    
+
     -- Player connected indicator
     if(IsActiveHuman(pPlayer)) then
 			controlTable.ConnectionStatus:SetHide(false);
@@ -256,12 +256,12 @@ function UpdatePlayerData( pPlayer, controlTable )
 			else
 				-- Not connected
 				controlTable.ConnectionStatus:SetTextureOffsetVal(0,96);
-				controlTable.ConnectionStatus:SetToolTipString( PlayerNotConnectedStr );		
-			end		
+				controlTable.ConnectionStatus:SetToolTipString( PlayerNotConnectedStr );
+			end
     else
 				controlTable.ConnectionStatus:SetHide(true);
     end
-    
+
 		-- Update diplomatic request button.
 		local localPlayer = Game.GetActivePlayer();
 		if(UI.ProposedDealExists(localPlayer, pPlayer:GetID())) then
@@ -278,9 +278,9 @@ function UpdatePlayerData( pPlayer, controlTable )
 			-- No deals in progress.
 			controlTable.DiploWaiting:SetHide(true);
 		end
-		
-		controlTable.HostIcon:SetHide( not (Matchmaking.GetHostID() == pPlayer:GetID()) );	 
-		
+
+		controlTable.HostIcon:SetHide( not (Matchmaking.GetHostID() == pPlayer:GetID()) );
+
 		local allowKick = Matchmaking.IsHost() and not bIsLocalPlayer and IsActiveHuman(pPlayer);
 		controlTable.KickButton:SetHide(not allowKick);
 end
@@ -291,7 +291,7 @@ function MPListEntryClick()
 	if PreGame.IsInternetGame() then		-- Pings only valid with the Steam transport
 		g_bShowPings = not g_bShowPings;
 		UpdateAndSort();
-			
+
 		Controls.MPListStack:CalculateSize();
 		Controls.MPListStack:ReprocessAnchoring();
 		Controls.MPListScroll:SetSizeX(Controls.MPListStack:GetSizeX());
@@ -299,7 +299,7 @@ function MPListEntryClick()
 		if( Controls.MPListScroll:GetRatio() < 1 ) then
 			Controls.MPListScroll:SetOffsetX( 15 );
 		end
-		Controls.MPListScroll:ReprocessAnchoring();   	
+		Controls.MPListScroll:ReprocessAnchoring();
 	end
 end
 
@@ -308,7 +308,7 @@ end
 function OnKickPlayer( selectionIndex )
 	local pPlayer = Players[selectionIndex];
 	local playerName = pPlayer:GetName();
-	UIManager:PushModal(Controls.ConfirmKick, true);	
+	UIManager:PushModal(Controls.ConfirmKick, true);
 	LuaEvents.SetKickPlayer(selectionIndex, playerName);
 end
 
@@ -320,10 +320,10 @@ function OnDiploWaiting( ePlayer )
 	end
 	if( Players[ePlayer]:IsHuman() ) then
 		Events.OpenPlayerDealScreenEvent( ePlayer );
-	else 
+	else
 		UI.SetRepeatActionPlayer(ePlayer);
 		UI.ChangeStartDiploRepeatCount(1);
-		Players[ePlayer]:DoBeginDiploWithHuman();    
+		Players[ePlayer]:DoBeginDiploWithHuman();
 	end
 end
 
@@ -338,13 +338,13 @@ function TeamHasObservers(pTeam, teamData)
 			return true;
 		end
 	else
-		for _, pPlayer in pairs( teamData ) do	        
+		for _, pPlayer in pairs( teamData ) do
 			if( pPlayer:IsObserver() and PreGame.GetSlotClaim(pPlayer:GetID()) == SlotClaim.SLOTCLAIM_ASSIGNED ) then
 				return true;
 			end
 		end
 	end
-	
+
 	return false;
 end
 
@@ -377,9 +377,9 @@ function BuildControls()
         else
             local teamEntry = {};
             ContextPtr:BuildInstanceForControl( "TeamEntry", teamEntry, Controls.MPListStack );
-			
+
             for _, pPlayer in pairs( teamData ) do
-                
+
                 if( pPlayer:IsEverAlive() or (pPlayer:IsObserver() and (PreGame.GetSlotClaim(pPlayer:GetID()) == SlotClaim.SLOTCLAIM_ASSIGNED)) ) then
                     local controlTable = {};
                     ContextPtr:BuildInstanceForControl( "PlayerEntry", controlTable, teamEntry.TeamStack );
@@ -390,16 +390,16 @@ function BuildControls()
 										controlTable.KickButton:SetVoid1(pPlayer:GetID());
 										controlTable.DiploWaiting:RegisterCallback( Mouse.eLClick, OnDiploWaiting );
 										controlTable.DiploWaiting:SetVoid1(pPlayer:GetID());
-																		
+
                     UpdatePlayerData( pPlayer, controlTable );
                 end
             end
-            
-            if(bObserverTeam) then 
+
+            if(bObserverTeam) then
 				-- OBSERVER_TEAM
 				teamEntry.TeamName:LocalizeAndSetText( "TXT_KEY_MULTIPLAYER_OBSERVER_TEAM_NAME" );
 				teamEntry.Score:SetHide(true);
-			else			
+			else
 				teamEntry.TeamName:LocalizeAndSetText( "TXT_KEY_MULTIPLAYER_DEFAULT_TEAM_NAME", iTeam + 1 );
 			end
 			teamEntry.TeamClickEntry:RegisterCallback( Mouse.eLClick, MPListEntryClick );
@@ -412,14 +412,14 @@ function BuildControls()
             g_SortTable[ tostring( teamEntry.Root ) ] = pTeam:GetScore();
         end
     end
-    
+
     Controls.MPListStack:CalculateSize();
     Controls.MPListScroll:SetSizeX(Controls.MPListStack:GetSizeX());
     Controls.MPListScroll:CalculateInternalSize();
     if( Controls.MPListScroll:GetRatio() < 1 ) then
         Controls.MPListScroll:SetOffsetX( 15 );
     end
-    Controls.MPListScroll:ReprocessAnchoring();   
+    Controls.MPListScroll:ReprocessAnchoring();
 
 end
 
@@ -430,27 +430,27 @@ function UpdateAndSort()
   for iPlayer, controlTable in pairs( g_PlayerEntries ) do
 		UpdatePlayerData( Players[ iPlayer ], controlTable );
   end
-    
+
 	local bIsNetworkMP = Game.IsNetworkMultiPlayer();
-	
+
   for iTeam, teamEntry in pairs( g_TeamEntries ) do
 		local pTeam = Teams[ iTeam ];
     local score = pTeam:GetScore();
     teamEntry.Score:SetText( score );
 		teamEntry.TeamClickEntry:SetHide( not bIsNetworkMP );
-	
+
     teamEntry.TeamStack:CalculateSize();
 		teamEntry.TeamBox:SetSizeX( teamEntry.TeamStack:GetSizeX() );
     teamEntry.Root:SetSizeX( teamEntry.TeamStack:GetSizeX() );
     teamEntry.TeamSeparator:SetSizeX( teamEntry.TeamStack:GetSizeX() - SEPARATOR_MARGIN);
     teamEntry.TeamHeaderSeparator:SetSizeX( teamEntry.TeamStack:GetSizeX() - SEPARATOR_MARGIN);
-                  
+
     g_SortTable[ tostring( teamEntry.Root ) ] = score;
-        
+
     -- sort all the players on the team
     teamEntry.TeamStack:SortChildren( MPListSort );
 	end
-    
+
   -- sort all of the teams
   Controls.MPListStack:SortChildren( MPListSort );
 end
@@ -506,7 +506,7 @@ Events.ActivePlayerTurnStart.Add( OnLocalTurnStart );
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function OnSerialEventGameDataDirty()
-		-- We need to rebuild the mp list because it's possible that 
+		-- We need to rebuild the mp list because it's possible that
 		-- we're involved in a multiplayer diplomacy proposal.
     g_bRebuildMPList = true;
 end
@@ -539,11 +539,11 @@ function ShowHideHandler( bIsHide )
 end
 ContextPtr:SetShowHideHandler( ShowHideHandler );
 
-    
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function OnOptionsChanged()
-    if( (Game.IsGameMultiPlayer() and OptionsManager.GetMPScoreList()) 
+    if( (Game.IsGameMultiPlayer() and OptionsManager.GetMPScoreList())
     or (not Game.IsGameMultiPlayer() and OptionsManager.GetScoreList())) then
         ContextPtr:SetHide( false );
     else
@@ -598,7 +598,7 @@ OnOptionsChanged();
 --------------------------------
 
 function IsActiveHuman( pPlayer )
-	-- Is this player really controlled by a human player?  
+	-- Is this player really controlled by a human player?
 	-- This check handles the fact that pPlayer:IsHuman() returns true for unoccupied observer slots. DOH!
 	return (Network.IsPlayerConnected(pPlayer:GetID()) or (pPlayer:IsHuman() and not pPlayer:IsObserver()));
 end
@@ -626,13 +626,13 @@ end
 
 function TelegraphConnectedPlayers()
         local modUserData = Modding.OpenUserData("PlayersConnected", 1);
-       
-	local players_connected = 0;
+
+        local players_connected = 0;
         for id, player in pairs(Players) do
 		if player:IsEverAlive() and Network.IsPlayerConnected(player:GetID()) then
                         players_connected = players_connected + 1;
 		end
-               
+
         end
 
         print("PlayersConnected: ", players_connected);
