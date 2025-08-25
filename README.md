@@ -50,5 +50,11 @@ Then, you should be able to point your VNC client at `localhost` and see Civ 5 r
 
 ## Thanks
 
-A big thank you to https://gitlab.com/Cerothen, https://github.com/Andrew-Dickinson, https://gitlab.com/CraftedCart, and https://gitlab.com/Hexarmored
-without whom this fork would not work at all.
+A big thanks goes out to:
+
+1. https://gitlab.com/Cerothen
+2. https://github.com/Andrew-Dickinson
+3. https://gitlab.com/CraftedCart
+4. https://gitlab.com/Hexarmored
+
+Without their work/forks this would not work at all.
