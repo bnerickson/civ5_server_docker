@@ -33,7 +33,7 @@ This fork was last tested and working 2025/08/25 with Fedora 42 (fedora:latest) 
 
 **1:** First, Civilization 5 needs to be installed into the `civ5game` directory, as well as the `CivilizationV_Server.exe` file from the Civ 5 SDK.  You can copy those files over yourself, or use provided script as `./install_civ.sh <steam_username> <steam_password>`.
 
-**2.** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details), then update `NFTY_TOPIC=""` in ./server/Dockerfile with the topic name that was created between the quotes.  All players should subscribe to the nfty topic to receive notifications.
+**2:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details), then update `NFTY_TOPIC=""` in `./server/Dockerfile` with the topic name that was created between the quotes.  All players should subscribe to the nfty topic to receive notifications.
 
 **3:** Now you can build the container with `./build.sh`.
 
