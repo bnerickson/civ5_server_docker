@@ -11,10 +11,10 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 4. wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
 5. wine and winetricks are installed from repos as opposed to being compiled.
 6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is.
-7. steam installed with winetrick (thanks https://gitlab.com/Cerothen/civ5_server_docker)
-8. Steam running with a lot of CEF (chromium) features disabled to it can run properly (thanks https://gitlab.com/Cerothen/civ5_server_docker)
+7. steam installed with winetricks.
+8. Steam running with a lot of CEF (chromium) features disabled to it can run properly.
 9. Applied a patch to fix libstrangle compilation on latest gcc.
-10. Updated smpt_server.py to use aiosmtpd instead of the SMTPServer lib as the latter is deprecated+removed.
+10. Updated smtp_server.py to use aiosmtpd instead of the SMTPServer lib as the latter is deprecated+removed (to be tested).
 
 ## How does it work? (briefly)
 
