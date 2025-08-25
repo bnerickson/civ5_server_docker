@@ -24,10 +24,11 @@ while : ; do
         fi
     done
 
-    PLAYERS=$(echo ${PLAYER_STR} | python3 -c "import sys; print('[' + ','.join([f'{{S=\'{name}\'}}' for name in sys.stdin.read().strip().split('\x1F')]) + ']', end='')")
-
     echo "Turn #: ${TURN_NUM}"
     echo "Player disconnected."
     echo "The following players still need to take their turns:"
-    echo ${PLAYERS}
+    echo ${PLAYER_STR}
+    if [ "${PLAYER_STR}" != "" ] && [ "${NFTY_TOPIC}" != "" ]; then
+        curl -d "Turn #: ${TURN_NUM}: The following players still need to take their turns: ${PLAYER_STR}" ntfy.sh/${NFTY_TOPIC}
+    fi
 done

@@ -36,7 +36,7 @@ RUN dnf -y install \
 RUN dnf -y group install development-tools
 
 # Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99
+ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 NFTY_TOPIC=""
 
 WORKDIR /
 
@@ -56,13 +56,8 @@ RUN chmod a+rw /libstrangle
 RUN patch /libstrangle/src/vulkan/overlay.cpp < /root/overlay_patch.patch && cd /libstrangle && make && make install
 RUN rm -rf /libstrangle
 
-# Install python-based faux SMTP server
-RUN dnf -y install python3 python3-pip python3-aiosmtpd
-RUN pip3 install mail-parser
-RUN mkdir -p /usr/lib/smtp_honeytrap/
-COPY ./smtp_server.py /usr/lib/smtp_honeytrap/
-
 # Install telemetry system to transmit players who haven't taken their turn
+# using nfty.sh
 RUN dnf install -y inotify-tools sqlite
 RUN mkdir -p /usr/lib/tx_player_turns/
 COPY ./tx_player_turns.bash /usr/lib/tx_player_turns/
