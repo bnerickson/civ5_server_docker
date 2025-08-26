@@ -7,10 +7,10 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 
 1. This fork runs on the fedora:latest container.
 2. All AWS-specific statements have been removed in favor of (optional) nfty notifications (see https://docs.ntfy.sh/)
-3. x11vnc running in Xvfb has been removed in favor of tigervnc because connecting to the latter in the fedora:latest container was not working for me.
+3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the latter in the fedora:latest container was not working for me.
 4. wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
 5. wine and winetricks are installed from repos as opposed to being compiled.
-6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is.
+6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is w/WoW64.
 7. steam installed with winetricks.
 8. Steam running with a lot of CEF (chromium) features disabled to it can run properly.
 9. Applied a patch to fix libstrangle compilation on latest gcc.
@@ -21,7 +21,7 @@ So Civ 5 Server is a Windows-only GUI application, that needs to render frames w
 
 ## When was this last tested
 
-This fork was last tested and working 2025/08/25 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
+This fork was last tested and working 2025/08/26 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
 
 ## Known Issues / TODO:
 
@@ -39,7 +39,7 @@ This fork was last tested and working 2025/08/25 with Fedora 42 (fedora:latest) 
 
 **4:** Now you can launch the container with `./run.sh`.
 
-**5:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is set up to only allow connections from localhost, so you'll want to open up an SSH tunnel if remoting in from a different machine first (`ssh -NL 5901:127.0.0.1:5901 ${USERNAME}@${SERVER_IP}`).
+**5:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is set up to only allow connections from localhost, so you'll want to open up an SSH tunnel if remoting in from a different machine first (`ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
 
 Then, you should be able to point your VNC client at `localhost` and see Civ 5 running. Steam will also be running - it needs to stay running the background for Civ to not crash, though you don't need to log in to it.
 

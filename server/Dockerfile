@@ -3,14 +3,25 @@ FROM fedora:latest
 # Update all packages
 RUN dnf -y update
 
+# gcc-c++ - Required to compile libstrangle
+# glibc-devel - Required to compile libstrangle
+# libstdc++-devel - Required to compile libstrangle
 # mesa-libGL - OpenGL software renderer
-# mesa-libOSMesa - Fixes crashes when starting a hosted game
-# pulseaudio, pulseaudio-libs.i686 - Civ 5 needs somewhere to output audio
-# supervisor - Lets up run and monitor a bunch of processes
-# tigervnc-server - Let us connect to the virtual display over VNC.  x11vnc Xvfb w/Fedora wasn't working well, but tigervnc works.
+# mesa-libOSMesa - Mesa offscreen rendering libraries (hosting a game crashes without this)
 # openbox - Super-lightweight window manager
-# glibc-devel,gcc-c++,libstdc++-devel required for libstrangle
+# pulseaudio, pulseaudio-libs.i686 - Civ 5 needs somewhere to output audio
+# pipewire-alsa - Wine complains about lib alsa missing, so included just in case
+# supervisor - Run and monitor processes
+# wine - Wine native rpm
+# winetricks - Allows us to install windows steam "natively"
+# tigervnc-server - VNC server to connect to the virtual display
+# xorg-x11-server-Xvfb - In-memory display server
 RUN dnf -y install \
+    gcc-c++ \
+    glibc-devel \
+    glibc-devel.i686 \
+    libstdc++-devel \
+    libstdc++-devel.i686 \
     mesa-libGL \
     mesa-libGL.i686 \
     mesa-libOSMesa.i686 \
@@ -18,20 +29,18 @@ RUN dnf -y install \
     mesa-dri-drivers \
     mesa-dri-drivers.i686 \
     mesa-libGL-devel \
+    openbox \
     pulseaudio \
     pulseaudio-libs.i686 \
     pipewire-alsa \
     pipewire-alsa.i686 \
     supervisor \
     tigervnc-server \
-    openbox \
     wine \
     winetricks \
-    glibc-devel \
-    glibc-devel.i686 \
-    gcc-c++ \
-    libstdc++-devel \
-    libstdc++-devel.i686
+    xorg-x11-server-Xvfb
+
+# Needed to compile libstrangle
 RUN dnf -y group install development-tools
 
 # Force software rendering, and also set $DISPLAY while we're here
@@ -44,7 +53,6 @@ WORKDIR /
 RUN winetricks --force -q win10 steam
 
 # Run steam so that it auto-updates at build time instead of on every container run
-RUN dnf -y install xorg-x11-server-Xvfb
 RUN /usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 & \
 sleep 6 && timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true
 
