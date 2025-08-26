@@ -7,8 +7,7 @@ RUN dnf -y update
 # mesa-libOSMesa - Fixes crashes when starting a hosted game
 # pulseaudio, pulseaudio-libs.i686 - Civ 5 needs somewhere to output audio
 # supervisor - Lets up run and monitor a bunch of processes
-# tigervnc-server - Let us connect to the virtual display over VNC.  x11vnc
-#                   + Xvfb w/Fedora wasn't working well, but tigervnc works.
+# tigervnc-server - Let us connect to the virtual display over VNC.  x11vnc Xvfb w/Fedora wasn't working well, but tigervnc works.
 # openbox - Super-lightweight window manager
 # glibc-devel,gcc-c++,libstdc++-devel required for libstrangle
 RUN dnf -y install \
@@ -36,7 +35,7 @@ RUN dnf -y install \
 RUN dnf -y group install development-tools
 
 # Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 NFTY_TOPIC=""
+ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NFTY_TOPIC=""
 
 WORKDIR /
 
@@ -56,11 +55,12 @@ RUN chmod a+rw /libstrangle
 RUN patch /libstrangle/src/vulkan/overlay.cpp < /root/overlay_patch.patch && cd /libstrangle && make && make install
 RUN rm -rf /libstrangle
 
-# Install telemetry system to transmit players who haven't taken their turn
-# using nfty.sh
-RUN dnf install -y inotify-tools sqlite
+# Install telemetry system to notify players who haven't taken their turn using nfty.sh
+RUN dnf install -y inotify-tools sqlite crontabs
 RUN mkdir -p /usr/lib/tx_player_turns/
 COPY ./tx_player_turns.bash /usr/lib/tx_player_turns/
+COPY ./scheduled_turn_notifications.bash /etc/cron.weekly/
+RUN chmod +x /etc/cron.weekly/scheduled_turn_notifications.bash
 
 # Add our list-of-stuff-to-execute
 COPY ./supervisord.conf /etc/supervisord.conf

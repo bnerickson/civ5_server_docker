@@ -1,7 +1,5 @@
 #!/bin/bash
 
-CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5"
-
 while : ; do
     echo "Verifying TurnStatus-1.db file is non-empty"
     if [ ! -s "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" ]; then
