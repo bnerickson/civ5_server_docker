@@ -7,11 +7,11 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 
 1. This fork runs on the fedora:latest container.
 2. All AWS-specific statements have been removed in favor of (optional) nfty notifications (see https://docs.ntfy.sh/)
-3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the latter in the fedora:latest container was not working for me.
-4. wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
-5. wine and winetricks are installed from repos as opposed to being compiled.
+3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora:latest container was not working for me.
+4. Wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
+5. Wine and winetricks are installed from repos as opposed to being compiled.
 6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is w/WoW64.
-7. steam installed with winetricks.
+7. Steam installed with winetricks.
 8. Steam running with a lot of CEF (chromium) features disabled to it can run properly.
 9. Applied a patch to fix libstrangle compilation on latest gcc.
 
