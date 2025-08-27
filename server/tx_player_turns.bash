@@ -41,7 +41,7 @@ while : ; do
 
     if [ "${PLAYER_STR}" != "${OLD_PLAYER_STR}" ] || [ "${TURN_NUM}" != "${OLD_TURN_NUM}" ]; then
         if [ "${NFTY_TOPIC}" != "" ]; then
-            curl -d "Turn #: ${TURN_NUM}: The following players still need to take their turns: ${PLAYER_STR}" ntfy.sh/${NFTY_TOPIC}
+            curl -d "Turn #${TURN_NUM}: The following players still need to take their turns: ${PLAYER_STR}" ntfy.sh/${NFTY_TOPIC}
         fi
         python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${TURN_NUM}" --players "${PLAYER_STR}"
     fi
