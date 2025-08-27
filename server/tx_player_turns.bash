@@ -1,5 +1,7 @@
 #!/bin/bash
 
+JSON_FILE="${CIV_DATA_ROOT}/current_turn_players.json"
+
 while : ; do
     echo "Verifying TurnStatus-1.db file is non-empty"
     if [ ! -s "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" ]; then
@@ -26,7 +28,19 @@ while : ; do
     echo "Player disconnected."
     echo "The following players still need to take their turns:"
     echo ${PLAYER_STR}
-    if [ "${PLAYER_STR}" != "" ] && [ "${NFTY_TOPIC}" != "" ]; then
-        curl -d "Turn #: ${TURN_NUM}: The following players still need to take their turns: ${PLAYER_STR}" ntfy.sh/${NFTY_TOPIC}
+
+    # Create json config file if it does not exist.
+    if [ ! -f "${JSON_FILE}" ]; then
+        echo '{}' > "${JSON_FILE}"
+    fi
+
+    OLD_TURN_NUM=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print --parameter turn)
+    OLD_PLAYER_STR=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print --parameter players)
+
+    if [ "${PLAYER_STR}" != "${OLD_PLAYER_STR}" ] || [ "${TURN_NUM}" != "${OLD_TURN_NUM}" ]; then
+        if [ "${NFTY_TOPIC}" != "" ]; then
+            curl -d "Turn #: ${TURN_NUM}: The following players still need to take their turns: ${PLAYER_STR}" ntfy.sh/${NFTY_TOPIC}
+        fi
+        python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${TURN_NUM}" --players "${PLAYER_STR}"
     fi
 done

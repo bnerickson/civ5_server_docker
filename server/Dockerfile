@@ -65,9 +65,9 @@ RUN rm -rf /libstrangle
 
 # Install telemetry system to notify players who haven't taken their turn using nfty.sh
 RUN dnf install -y inotify-tools sqlite crontabs
-RUN mkdir -p /usr/lib/tx_player_turns/
-COPY ./tx_player_turns.bash /usr/lib/tx_player_turns/
+COPY ./tx_player_turns.bash /usr/local/bin/
 COPY ./scheduled_turn_notifications.bash /etc/cron.weekly/
+COPY ./json_file_helper.py /usr/local/bin/
 RUN chmod +x /etc/cron.weekly/scheduled_turn_notifications.bash
 
 # Add our list-of-stuff-to-execute
