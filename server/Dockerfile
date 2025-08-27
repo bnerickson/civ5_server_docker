@@ -57,10 +57,10 @@ RUN /usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 & \
 sleep 6 && timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true
 
 # Install libstrangle to limit the framerate
-COPY ./overlay_patch.patch /root/overlay_patch.patch
 RUN git clone https://gitlab.com/torkel104/libstrangle.git
 RUN chmod a+rw /libstrangle
-RUN patch /libstrangle/src/vulkan/overlay.cpp < /root/overlay_patch.patch && cd /libstrangle && make && make install
+COPY ./overlay_patch.patch /libstrangle/overlay_patch.patch
+RUN patch /libstrangle/src/vulkan/overlay.cpp < /libstrangle/overlay_patch.patch && cd /libstrangle && make && make install
 RUN rm -rf /libstrangle
 
 # Install telemetry system to notify players who haven't taken their turn using nfty.sh
@@ -75,6 +75,8 @@ COPY ./supervisord.conf /etc/supervisord.conf
 
 # For testing software rendering
 # RUN dnf -y install glx-utils
+
+RUN dnf clean all -y
 
 # Start the supervisor service to manage processes
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -1,0 +1,60 @@
+--- MPList.lua	2025-08-25 19:30:28.117057417 +0000
++++ MPList.lua	2025-08-27 17:48:33.165664475 +0000
+@@ -594,3 +594,57 @@
+ g_bRebuildMPList = true;
+ OnOptionsChanged();
+ 
++
++--------------------------------
++
++function IsActiveHuman( pPlayer )
++	-- Is this player really controlled by a human player?
++	-- This check handles the fact that pPlayer:IsHuman() returns true for unoccupied observer slots. DOH!
++	return (Network.IsPlayerConnected(pPlayer:GetID()) or (pPlayer:IsHuman() and not pPlayer:IsObserver()));
++end
++
++function TelegraphPlayerStatus()
++	local modUserData = Modding.OpenUserData("TurnStatus", 1);
++	modUserData.SetValue("TurnNum", Game.GetGameTurn());
++
++	local current_turn_status = "";
++	for id, player in pairs(Players) do
++		if player:IsEverAlive() and IsActiveHuman(player) then
++			if(player:IsAlive() -- Only living players need to take their turn
++					and not player:HasReceivedNetTurnComplete()) then -- Human player not finished with turn
++				current_turn_status = current_turn_status .. player:GetNickName() .. string.char(31);
++			end
++		end
++	end
++
++	print("Turn: ", Game.GetGameTurn());
++	print("PlayersWhoNeedToTakeTheirTurn: ", current_turn_status);
++
++	modUserData.SetValue("PlayersWhoNeedToTakeTheirTurn", current_turn_status);
++end
++
++
++function TelegraphConnectedPlayers()
++        local modUserData = Modding.OpenUserData("PlayersConnected", 1);
++
++        local players_connected = 0;
++        for id, player in pairs(Players) do
++		if player:IsEverAlive() and Network.IsPlayerConnected(player:GetID()) then
++                        players_connected = players_connected + 1;
++		end
++
++        end
++
++        print("PlayersConnected: ", players_connected);
++
++        modUserData.SetValue("PlayersConnected", players_connected);
++end
++
++
++--GameEvents.GameCoreUpdateBegin.Add(TelegraphPlayerStatus);
++Events.MultiplayerGamePlayerDisconnected.Add(TelegraphPlayerStatus);
++Events.MultiplayerGamePlayerDisconnected.Add(TelegraphConnectedPlayers);
++Events.MultiplayerJoinRoomComplete.Add(TelegraphConnectedPlayers);
++Events.MultiplayerGameAbandoned.Add(TelegraphConnectedPlayers);
++Events.MultiplayerGamePlayerUpdated.Add(TelegraphConnectedPlayers);
++
