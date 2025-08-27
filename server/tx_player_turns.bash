@@ -5,7 +5,7 @@ JSON_FILE="${CIV_DATA_ROOT}/current_turn_players.json"
 while : ; do
     echo "Verifying TurnStatus-1.db file is non-empty"
     if [ ! -s "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" ]; then
-        sleep 3600
+        sleep 30
         continue
     fi
 

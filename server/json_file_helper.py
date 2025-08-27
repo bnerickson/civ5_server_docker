@@ -108,10 +108,8 @@ def main():
         sys.exit(0)
 
     if args.task == "print":
-        if args.parameter in civ_status:
-            print(civ_status[args.parameter])
-        else:
-            print("")
+        str_to_print = civ_status[args.parameter] if args.parameter in civ_status else ""
+        print(str_to_print)
     elif args.task == "update":
         new_json = {
             "turn": args.turn,
