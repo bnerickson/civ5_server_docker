@@ -16,12 +16,14 @@ while : ; do
         if [ ${?} -eq 0 ]; then
             break
         fi
+        sleep 5
     done
     while : ; do
         TURN_NUM=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" "SELECT Value FROM SimpleValues WHERE Name = 'TurnNum';")
         if [ ${?} -eq 0 ]; then
             break
         fi
+        sleep 5
     done
 
     echo "Turn #: ${TURN_NUM}"
