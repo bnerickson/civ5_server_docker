@@ -1,25 +1,26 @@
 #!/bin/bash
 
 JSON_FILE="${CIV_DATA_ROOT}/current_turn_players.json"
+SQLITE_DB="TurnStatus-1.db"
 
 while : ; do
-    echo "Verifying TurnStatus-1.db file is non-empty"
-    if [ ! -s "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" ]; then
+    echo "Verifying ${SQLITE_DB} file is non-empty"
+    if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
         sleep 30
         continue
     fi
 
     echo "Waiting for sqlite file update..."
-    inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db"
+    inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
     while : ; do
-        PLAYER_STR=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" "SELECT Value FROM SimpleValues WHERE Name = 'PlayersWhoNeedToTakeTheirTurn';")
+        PLAYER_STR=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" "SELECT Value FROM SimpleValues WHERE Name = 'PlayersWhoNeedToTakeTheirTurn';")
         if [ ${?} -eq 0 ]; then
             break
         fi
         sleep 5
     done
     while : ; do
-        TURN_NUM=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/TurnStatus-1.db" "SELECT Value FROM SimpleValues WHERE Name = 'TurnNum';")
+        TURN_NUM=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" "SELECT Value FROM SimpleValues WHERE Name = 'TurnNum';")
         if [ ${?} -eq 0 ]; then
             break
         fi

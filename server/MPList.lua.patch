@@ -1,6 +1,6 @@
 --- MPList.lua	2025-08-25 19:30:28.117057417 +0000
-+++ MPList.lua	2025-08-27 17:48:33.165664475 +0000
-@@ -594,3 +594,57 @@
++++ MPList.lua	2025-08-30 17:57:52.242635755 +0000
+@@ -594,3 +594,60 @@
  g_bRebuildMPList = true;
  OnOptionsChanged();
  
@@ -13,8 +13,8 @@
 +	return (Network.IsPlayerConnected(pPlayer:GetID()) or (pPlayer:IsHuman() and not pPlayer:IsObserver()));
 +end
 +
-+function TelegraphPlayerStatus()
-+	local modUserData = Modding.OpenUserData("TurnStatus", 1);
++function TelegraphPlayerStatusHelper( pDatabaseName )
++	local modUserData = Modding.OpenUserData(pDatabaseName, 1);
 +	modUserData.SetValue("TurnNum", Game.GetGameTurn());
 +
 +	local current_turn_status = "";
@@ -27,34 +27,37 @@
 +		end
 +	end
 +
-+	print("Turn: ", Game.GetGameTurn());
-+	print("PlayersWhoNeedToTakeTheirTurn: ", current_turn_status);
-+
 +	modUserData.SetValue("PlayersWhoNeedToTakeTheirTurn", current_turn_status);
 +end
 +
++function TelegraphPlayerStatusDisconnect()
++	TelegraphPlayerStatusHelper( "TurnStatus" );
++end
++
++function TelegraphPlayerStatusDynamic()
++	TelegraphPlayerStatusHelper( "DynamicTurnStatus" );
++end
 +
 +function TelegraphConnectedPlayers()
-+        local modUserData = Modding.OpenUserData("PlayersConnected", 1);
++	local modUserData = Modding.OpenUserData("PlayersConnected", 1);
 +
-+        local players_connected = 0;
-+        for id, player in pairs(Players) do
++	local players_connected = 0;
++	for id, player in pairs(Players) do
 +		if player:IsEverAlive() and Network.IsPlayerConnected(player:GetID()) then
-+                        players_connected = players_connected + 1;
++			players_connected = players_connected + 1;
 +		end
 +
-+        end
++	end
 +
-+        print("PlayersConnected: ", players_connected);
-+
-+        modUserData.SetValue("PlayersConnected", players_connected);
++	modUserData.SetValue("PlayersConnected", players_connected);
 +end
 +
 +
-+--GameEvents.GameCoreUpdateBegin.Add(TelegraphPlayerStatus);
-+Events.MultiplayerGamePlayerDisconnected.Add(TelegraphPlayerStatus);
++--GameEvents.GameCoreUpdateBegin.Add(TelegraphPlayerStatusDisconnect);
++Events.MultiplayerGamePlayerDisconnected.Add(TelegraphPlayerStatusDisconnect);
 +Events.MultiplayerGamePlayerDisconnected.Add(TelegraphConnectedPlayers);
 +Events.MultiplayerJoinRoomComplete.Add(TelegraphConnectedPlayers);
 +Events.MultiplayerGameAbandoned.Add(TelegraphConnectedPlayers);
 +Events.MultiplayerGamePlayerUpdated.Add(TelegraphConnectedPlayers);
++Events.RemotePlayerTurnEnd.Add(TelegraphPlayerStatusDynamic);
 +
