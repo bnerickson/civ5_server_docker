@@ -27,6 +27,7 @@ This fork was last tested and working 2025/08/26 with Fedora 42 (fedora:latest) 
 
 1. Remove overlay_patch.path once https://gitlab.com/torkel104/libstrangle/-/merge_requests/29 is merged.
 2. Create a docker compose for this.
+3. Combine independent sqlite3 calls into a single call to prevent race conditions.
 
 ## How do you use it?
 
