@@ -15,8 +15,9 @@ initial_db=0
 
 while : ; do
     echo "Verifying ${SQLITE_DB} file is non-empty..."
-    # Note that if the file is created, Civ V fails to create update
-    # the database, so we'll just have to wait.
+    # Note that if we manually create the file here, then Civ V
+    # fails to create/update the database itself, so we'll just
+    # have to wait.
     if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
         initial_db=1
         sleep 30
@@ -29,7 +30,7 @@ while : ; do
 
     if [ "${initial_db}" -eq 1 ]; then
         # If the db was just created, then we don't need to wait for
-        # it to be updated because it already has been updated.
+        # it to be updated because it has just been created.
         initial_db=0
     else
         echo "Waiting for sqlite file update..."
