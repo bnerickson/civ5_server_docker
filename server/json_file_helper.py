@@ -49,12 +49,10 @@ def parse_args():
     )
     parser_print.add_argument(
         "-p",
-        "--parameter",
-        help="JSON field to extract from config file",
-        dest="parameter",
-        choices=["turn", "players"],
-        required=True,
-        type=str,
+        "--parameters",
+         help="JSON field to extract from config file",
+        dest="parameters",
+        nargs='+',
     )
 
     parser_update = subparsers.add_parser(
@@ -108,7 +106,9 @@ def main():
         sys.exit(0)
 
     if args.task == "print":
-        str_to_print = civ_status[args.parameter] if args.parameter in civ_status else ""
+        str_to_print = ""
+        for parameter in args.parameters:
+            str_to_print += parameter + ":" + civ_status[parameter] + "\n" if parameter in civ_status else ""
         print(str_to_print)
     elif args.task == "update":
         new_json = {

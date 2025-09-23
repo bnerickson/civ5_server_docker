@@ -21,17 +21,17 @@ So Civ 5 Server is a Windows-only GUI application, that needs to render frames w
 
 ## When was this last tested
 
-This fork was last tested and working 2025/08/26 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
+This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
 
 ## Known Issues / TODO:
 
 1. Remove overlay_patch.path once https://gitlab.com/torkel104/libstrangle/-/merge_requests/29 is merged.
 2. Create a docker compose for this.
-3. Combine independent sqlite3 calls into a single call to prevent race conditions.
+3. Move the NTFY variable to a separate, non-git tracked config file that is created by build.sh.
 
 ## How do you use it?
 
-**1:** First, Civilization 5 needs to be installed into the `civ5game` directory, as well as the `CivilizationV_Server.exe` file from the Civ 5 SDK.  You can copy those files over yourself, or use provided script as `./install_civ.sh <steam_username> <steam_password>`.
+**1:** First, Civilization 5 needs to be installed into the `civ5game` directory, as well as the `CivilizationV_Server.exe` file from the Civ 5 SDK.  You can copy those files over yourself, or use provided script as `./install_civ.sh <steam_username> <steam_password>`.  Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete "works".
 
 **2:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details), then update `NFTY_TOPIC=""` in `./server/Dockerfile` with the topic name that was created between the quotes.  All players should subscribe to the nfty topic to receive notifications.
 
