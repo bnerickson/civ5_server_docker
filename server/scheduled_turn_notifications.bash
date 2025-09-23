@@ -2,8 +2,8 @@
 
 set -o errexit -o nounset -o pipefail
 
-SQLITE_DB="DynamicTurnStatus-1.db"
 MAXIMUM_LOOP_COUNT=12
+SQLITE_DB="DynamicTurnStatus-1.db"
 
 echo "Verifying ${SQLITE_DB} file exists and is non-empty"
 # Exit if the db does not exist or is empty.
