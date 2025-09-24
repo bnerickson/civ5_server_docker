@@ -100,8 +100,8 @@ while : ; do
     echo "(Old) Players Who Need To Take Their Turn: ${old_player_str}"
 
     if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ]; then
-        if [ "${NFTY_TOPIC}" != "" ]; then
-            curl -d "Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NFTY_TOPIC}
+        if [ "${NTFY_TOPIC}" != "" ]; then
+            curl -d "Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NTFY_TOPIC}
         fi
         python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
     fi

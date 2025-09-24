@@ -58,4 +58,4 @@ done
 echo "Turn #${turn_num}"
 echo "Players Who Need To Take Their Turn: ${player_str}"
 
-curl -d "Turn #${turn_num}: Weekly Notification: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NFTY_TOPIC}
+curl -d "Turn #${turn_num}: Weekly Notification: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NTFY_TOPIC}
