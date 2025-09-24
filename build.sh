@@ -20,6 +20,3 @@ if [ ${?} -eq 1 ]; then
 else
     set -e
 fi
-
-# Build the container
-docker build -t civ5server "${DIR}/server"

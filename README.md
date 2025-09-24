@@ -35,15 +35,17 @@ This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) 
 
 **2:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details), then update `NFTY_TOPIC=""` in `./server/Dockerfile` with the topic name that was created between the quotes.  All players should subscribe to the nfty topic to receive notifications.
 
-**3:** Now you can build the container with `./build.sh`.
+**3:** Build the container prerequisites with `./build.sh`.
 
-**4:** Now you can launch the container with `./run.sh`.
+**4:** Build the container with the command `docker build -t civ5server "/path/to/civ5_docker_server/server" --build-arg NTFY_TOPIC=""` replacing the `NTFY_TOPIC=""` with your ntfy subscription if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`)
 
-**5:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is set up to only allow connections from localhost, so you'll want to open up an SSH tunnel if remoting in from a different machine first (`ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
+**5:** Launch the container with `./run.sh`.
+
+**6:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is set up to only allow connections from localhost, so you'll want to open up an SSH tunnel if remoting in from a different machine first (`ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
 
 Then, you should be able to point your VNC client at `localhost` and see Civ 5 running. Steam will also be running - it needs to stay running the background for Civ to not crash, though you don't need to log in to it.
 
-**6:** Setup the game through the VNC connection, and hope that it works and people can connect.
+**7:** Setup the game through the VNC connection, and hope that it works and people can connect.
 
 # Ports you might need to open/let through a firewall
 

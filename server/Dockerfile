@@ -1,5 +1,7 @@
 FROM fedora:latest
 
+ARG NTFY_TOPIC=""
+
 # Update all packages
 RUN dnf -y update
 
@@ -44,7 +46,7 @@ RUN dnf -y install \
 RUN dnf -y group install development-tools
 
 # Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NFTY_TOPIC=""
+ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC
 
 WORKDIR /
 
