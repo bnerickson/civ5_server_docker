@@ -27,7 +27,6 @@ This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) 
 
 1. Remove overlay_patch.path once https://gitlab.com/torkel104/libstrangle/-/merge_requests/29 is merged.
 2. Create a docker compose for this.
-3. Move the NTFY variable to a separate, non-git tracked config file that is created by build.sh.
 
 ## How do you use it?
 
