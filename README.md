@@ -6,7 +6,7 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 ## Major Fork Changes
 
 1. This fork runs on the fedora:latest container.
-2. All AWS-specific statements have been removed in favor of (optional) nfty notifications (see https://docs.ntfy.sh/)
+2. All AWS-specific statements have been removed in favor of (optional) nfty notifications (see https://docs.ntfy.sh/) that are fired off when a player disconnects and on a weekly basis.  The latter uses a different database based on players that have clicked "Next Turn" ergo it is more accurate.  However, because it's trivial to spam notifications this way, it is only fired off weekly.
 3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora:latest container was not working for me.
 4. Wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
 5. Wine and winetricks are installed from repos as opposed to being compiled.
@@ -32,11 +32,11 @@ This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) 
 
 **1:** First, Civilization 5 needs to be installed into the `civ5game` directory, as well as the `CivilizationV_Server.exe` file from the Civ 5 SDK.  You can copy those files over yourself, or use provided script as `./install_civ.sh <steam_username> <steam_password>`.  Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete "works".
 
-**2:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details), then update `NFTY_TOPIC=""` in `./server/Dockerfile` with the topic name that was created between the quotes.  All players should subscribe to the nfty topic to receive notifications.
+**2:** Build the container prerequisites with `./build.sh`.
 
-**3:** Build the container prerequisites with `./build.sh`.
+**3:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details).  The name of the subscription you created will be used in the next step when building the container. All players should subscribe to the nfty topic to receive notifications.
 
-**4:** Build the container with the command `docker build -t civ5server "/path/to/civ5_docker_server/server" --build-arg NTFY_TOPIC=""` replacing the `NTFY_TOPIC=""` with your ntfy subscription if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`)
+**4:** Build the container with the command `docker build -t civ5server "/path/to/civ5_docker_server/server" --build-arg NTFY_TOPIC=""` replacing the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.
 
 **5:** Launch the container with `./run.sh`.
 
