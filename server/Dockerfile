@@ -75,6 +75,10 @@ RUN chmod +x /etc/cron.weekly/scheduled_turn_notifications.bash
 # Add our list-of-stuff-to-execute
 COPY ./supervisord.conf /etc/supervisord.conf
 
+# Deploy a debug script to query the dbs
+COPY ./debug_script.bash /usr/local/bin/
+RUN chmod +x /usr/local/bin/debug_script.bash
+
 # For testing software rendering
 # RUN dnf -y install glx-utils
 
