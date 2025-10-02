@@ -21,7 +21,7 @@ So Civ 5 Server is a Windows-only GUI application, that needs to render frames w
 
 ## When was this last tested
 
-This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
+This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
 
 ## Known Issues / TODO:
 
@@ -30,21 +30,23 @@ This fork was last tested and working 2025/09/23 with Fedora 42 (fedora:latest) 
 
 ## How do you use it?
 
-**1:** First, Civilization 5 needs to be installed into the `civ5game` directory, as well as the `CivilizationV_Server.exe` file from the Civ 5 SDK.  You can copy those files over yourself, or use provided script as `./install_civ.sh <steam_username> <steam_password>`.  Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete "works".
+**1.** Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` and enter the cloned directory with `cd civ5_server_docker`
 
-**2:** Build the container prerequisites with `./build.sh`.
+**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory.  You can copy those files over yourself or use the provided install_civ.sh script as follows (note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete is a valid, if annoying, workaround): `./install_civ.sh <steam_username> <steam_password>`
 
-**3:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for more details).  The name of the subscription you created will be used in the next step when building the container. All players should subscribe to the nfty topic to receive notifications.
+**3:** Build the container prerequisites with the following command: `./build.sh`
 
-**4:** Build the container with the command `docker build -t civ5server "/path/to/civ5_docker_server/server" --build-arg NTFY_TOPIC=""` replacing the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.
+**4:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  The name of the subscription you create will be used in the next step when building the container. All players should subscribe to the nfty topic to receive notifications.
 
-**5:** Launch the container with `./run.sh`.
+**5:** Build the container with the command `docker build -t civ5server "./server" --build-arg NTFY_TOPIC=""` replacing the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.
 
-**6:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is set up to only allow connections from localhost, so you'll want to open up an SSH tunnel if remoting in from a different machine first (`ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
+**6:** Launch the container with the following command: `./run.sh`
 
-Then, you should be able to point your VNC client at `localhost` and see Civ 5 running. Steam will also be running - it needs to stay running the background for Civ to not crash, though you don't need to log in to it.
+**7:** After the container starts running, you should be able to remote in with VNC. The `run.sh` script is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
 
-**7:** Setup the game through the VNC connection, and hope that it works and people can connect.
+Then, you should be able to point your VNC client at `localhost` and see Civilization V running. Steam will also be running - it needs to stay running the background for Civilization V to not crash, though you don't need to log in to it.
+
+**8:** Setup the game through the VNC connection, and hope that it works and people can connect.
 
 # Ports you might need to open/let through a firewall
 

@@ -7,13 +7,16 @@ MAXIMUM_LOOP_COUNT=12
 SQLITE_DB=("TurnStatus-1.db" "DynamicTurnStatus-1.db")
 
 for db in "${SQLITE_DB[@]}"; do
-    echo "Verifying ${SQLITE_DB} file exists and is non-empty"
+    printf "DB: %s\n    Verifying %s file exists and is non-empty...\n" "${db}" "${db}"
     # Exit if the db does not exist or is empty.
-    if [ ! -f "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
+    if [ ! -f "${CIV_DATA_ROOT}/ModUserData/${db}" ]; then
+        printf "SQLite DB %s does not exist.  Continuing...\n" "${db}"
         continue
-    elif [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
+    elif [ ! -s "${CIV_DATA_ROOT}/ModUserData/${db}" ]; then
+        printf "SQLite DB %s is empty.  Continuing...\n" "${db}"
         continue
     fi
+    printf "    %s file exists and is non-empty.\n" "${db}"
 
     loop_counter=1
     player_str=""
@@ -22,11 +25,16 @@ for db in "${SQLITE_DB[@]}"; do
     while : ; do
         if (( loop_counter > MAXIMUM_LOOP_COUNT )); then
             # Exit (give up) if we have looped 12 times (1 minute).
+            printf "Unable to extract TurnNum and PlayersWhoNeedToTakeTheirTurn values found in %s.\n    TurnNum: %s\n    PlayersWhoNeedToTakeTheirTurn: %s\n    Not sending notification and continuing...\n" "${db}" "${turn_num}" "${player_str}"
             break
         fi
 
+        # Query the sqlite DB for the values we need.
+        # We disable errexit because we don't want to
+        # bomb the script if the query fails and will
+        # retry instead.
         set +o errexit
-        sqlite_query=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ".mode csv" "SELECT * FROM SimpleValues;" | sed $'s/\x1f/, /g')
+        sqlite_query=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${db}" ".mode csv" "SELECT * FROM SimpleValues;" | sed $'s/\x1f/, /g')
         sql_query_exit_status="${?}"
         set -o errexit
 
@@ -49,7 +57,7 @@ for db in "${SQLITE_DB[@]}"; do
             fi
         done <<< "${sqlite_query_formatted}"
 
-        if [ "${player_str}" != "" -a "${turn_num}" != "" ]; then
+        if [ "${player_str}" != "" ] && [ "${turn_num}" != "" ]; then
             break
         fi
 
@@ -57,11 +65,7 @@ for db in "${SQLITE_DB[@]}"; do
         loop_counter=$((loop_counter+1))
     done
 
-    echo "DB: ${db}"
-    echo "Turn #${turn_num}"
-    echo "Players Who Need To Take Their Turn: ${player_str}"
+    printf "    %s:TurnNum: %s\n    %s:PlayersWhoNeedToTakeTheirTurn: %s\n" "${db}" "${turn_num}" "${db}" "${player_str}"
 done
 
-echo "JSON File: ${JSON_FILE}"
-cat "${JSON_FILE}"
-echo ""
+printf "JSON File %s Contents:\n    %s\n" "${JSON_FILE}" "$(cat "${JSON_FILE}")"

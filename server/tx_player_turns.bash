@@ -11,38 +11,19 @@ JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
 SQLITE_DB="TurnStatus-1.db"
 
-initial_db=0
-
-while : ; do
-    echo "Verifying ${SQLITE_DB} file is non-empty..."
-    # Note that if we manually create the file here, then Civ V
-    # fails to create/update the database itself, so we'll just
-    # have to wait.
-    if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
-        initial_db=1
-        sleep 30
-        continue
-    fi
-
-    loop_counter=1
-    player_str=""
-    turn_num=""
-
-    if [ "${initial_db}" -eq 1 ]; then
-        # If the db was just created, then we don't need to wait for
-        # it to be updated because it has just been created.
-        initial_db=0
-    else
-        echo "Waiting for sqlite file update..."
-        inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
-    fi
+function db_handler {
     while : ; do
         if (( loop_counter > MAXIMUM_LOOP_COUNT )); then
             # Exit (give up) if we have looped 12 times (1 minute).
             # supervisord will restart this script.
-            exit 0
+            printf "Unable to extract TurnNum and PlayersWhoNeedToTakeTheirTurn values found in %s.\nTurnNum: %s\nPlayersWhoNeedToTakeTheirTurn: %s\nNot sending notification and exiting...\n" "${SQLITE_DB}" "${turn_num}" "${player_str}"
+            exit 1
         fi
 
+        # Query the sqlite DB for the values we need.
+        # We disable errexit because we don't want to
+        # bomb the script if the query fails and will
+        # retry instead.
         set +o errexit
         sqlite_query=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ".mode csv" "SELECT * FROM SimpleValues;")
         sql_query_exit_status="${?}"
@@ -67,7 +48,8 @@ while : ; do
             fi
         done <<< "${sqlite_query_formatted}"
 
-        if [ "${player_str}" != "" -a "${turn_num}" != "" ]; then
+        # Verify the fields we extracted are not empty (which can happen).
+        if [ "${player_str}" != "" ] && [ "${turn_num}" != "" ]; then
             break
         fi
 
@@ -75,18 +57,12 @@ while : ; do
         loop_counter=$((loop_counter+1))
     done
 
-    echo "Player disconnected."
-    echo "Turn #${turn_num}"
-    echo "Players Who Need To Take Their Turn: ${player_str}"
-
-    # Create json config file if it does not exist.
-    if [ ! -f "${JSON_FILE}" ]; then
-        echo '{}' > "${JSON_FILE}"
-    fi
+    printf "Player disconnected.\nTurn #%s\nPlayers Who Need To Take Their Turn: %s\n" "${turn_num}" "${player_str}"
 
     old_turn_num=""
     old_player_str=""
 
+    # Get the saved JSON file's values
     json_file_params=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print --parameters turn players)
     while IFS= read -r line; do
         if [[ "${line}" =~ ^turn:.* ]]; then
@@ -96,13 +72,62 @@ while : ; do
         fi
     done <<< "${json_file_params}"
 
-    echo "(Old) Turn #${old_turn_num}"
-    echo "(Old) Players Who Need To Take Their Turn: ${old_player_str}"
+    printf "(Old) Turn #%s\n(Old) Players Who Need To Take Their Turn: %s\n" "${old_turn_num}" "${old_player_str}"
 
+    # Update the JSON file if the values changed
     if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ]; then
         if [ "${NTFY_TOPIC}" != "" ]; then
             curl -d "Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NTFY_TOPIC}
         fi
         python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
     fi
-done
+}
+
+function main_handler {
+    # Create the json config file if it does not exist.
+    if [ ! -f "${JSON_FILE}" ]; then
+        echo '{}' > "${JSON_FILE}"
+    fi
+
+    initial_db=0
+
+    # This loop handles the edge case when the sqlite DB has not
+    # been created yet.
+    while : ; do
+        loop_counter=1
+        player_str=""
+        turn_num=""
+
+        printf "Verifying %s file is non-empty...\n" "${SQLITE_DB}"
+        # Note that if we manually create the file here, then Civ V
+        # fails to create/update the database, therefore we we wait
+        # here for Civ V to create it itself.
+        if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
+            sleep 30
+            continue
+            initial_db=1
+        fi
+        printf "%s file exists and is non-empty.\n" "${SQLITE_DB}"
+
+        if [ "${initial_db}" -eq 1 ]; then
+            db_handler
+        fi
+
+        break
+    done
+
+    # This is the main loop that handles updates to the sqlite DB
+    # after it has been created.
+    while : ; do
+        loop_counter=1
+        player_str=""
+        turn_num=""
+
+        printf "Waiting for update to SQLite file %s...\n" "${SQLITE_DB}"
+        inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
+
+        db_handler
+    done
+}
+
+main_handler
