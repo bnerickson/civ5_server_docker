@@ -12,6 +12,12 @@ MAXIMUM_LOOP_COUNT=12
 SQLITE_DB="TurnStatus-1.db"
 
 function db_handler {
+    cached_player_str=""
+    cached_turn_num=""
+    loop_counter=1
+    player_str=""
+    turn_num=""
+
     while : ; do
         if (( loop_counter > MAXIMUM_LOOP_COUNT )); then
             # Exit (give up) if we have looped 12 times (1 minute).
@@ -50,7 +56,18 @@ function db_handler {
 
         # Verify the fields we extracted are not empty (which can happen).
         if [ "${player_str}" != "" ] && [ "${turn_num}" != "" ]; then
-            break
+            # This is a sanity check to verify that the data in the SQLite DB
+            # was updated successfully.  We check at least twice, and if the
+            # values are the same for both checks then we'll assume they're
+            # correct and exit the loop.  If the values keep changing, then
+            # we continue looping until we reach MAXIMUM_LOOP_COUNT or until
+            # the values "stabilize".
+            if [ "${player_str}" != "${cached_player_str}" ] || [ "${turn_num}" != "${cached_turn_num}" ]; then
+                cached_player_str="${player_str}"
+                cached_turn_num="${turn_num}"
+            else
+                break
+            fi
         fi
 
         sleep 5
@@ -94,18 +111,14 @@ function main_handler {
     # This loop handles the edge case when the sqlite DB has not
     # been created yet.
     while : ; do
-        loop_counter=1
-        player_str=""
-        turn_num=""
-
         printf "Verifying %s file is non-empty...\n" "${SQLITE_DB}"
         # Note that if we manually create the file here, then Civ V
         # fails to create/update the database, therefore we we wait
         # here for Civ V to create it itself.
         if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
+            initial_db=1
             sleep 30
             continue
-            initial_db=1
         fi
         printf "%s file exists and is non-empty.\n" "${SQLITE_DB}"
 
@@ -119,13 +132,8 @@ function main_handler {
     # This is the main loop that handles updates to the sqlite DB
     # after it has been created.
     while : ; do
-        loop_counter=1
-        player_str=""
-        turn_num=""
-
         printf "Waiting for update to SQLite file %s...\n" "${SQLITE_DB}"
         inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
-
         db_handler
     done
 }

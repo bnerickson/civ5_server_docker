@@ -17,6 +17,8 @@ if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
 fi
 printf "%s file exists and is non-empty.\n" "${SQLITE_DB}"
 
+cached_player_str=""
+cached_turn_num=""
 loop_counter=1
 player_str=""
 turn_num=""
@@ -57,7 +59,18 @@ while : ; do
     done <<< "${sqlite_query_formatted}"
 
     if [ "${player_str}" != "" ] && [ "${turn_num}" != "" ]; then
-        break
+        # This is a sanity check to verify that the data in the SQLite DB
+        # was updated successfully.  We check at least twice, and if the
+        # values are the same for both checks then we'll assume they're
+        # correct and exit the loop.  If the values keep changing, then
+        # we continue looping until we reach MAXIMUM_LOOP_COUNT or until
+        # the values "stabilize".
+        if [ "${player_str}" != "${cached_player_str}" ] || [ "${turn_num}" != "${cached_turn_num}" ]; then
+            cached_player_str="${player_str}"
+            cached_turn_num="${turn_num}"
+        else
+            break
+        fi
     fi
 
     sleep 5
