@@ -5,6 +5,13 @@ ARG NTFY_TOPIC=""
 # Update all packages
 RUN dnf -y update
 
+# Copy custom repo files IF THEY EXIST
+# Otherwise, the default behavior is copy
+# nothing over and use the default repo files
+COPY fedora.repo* /etc/yum.repos.d/fedora.repo
+COPY fedora-updates.repo* /etc/yum.repos.d/fedora-updates.repo
+COPY fedora-cisco-openh264.repo* /etc/yum.repos.d/fedora-cisco-openh264.repo
+
 # cronie - Weekly notifications of player turn status
 # gcc-c++ - Required to compile libstrangle
 # glibc-devel - Required to compile libstrangle
