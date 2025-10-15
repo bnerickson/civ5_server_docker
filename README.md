@@ -13,17 +13,16 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is w/WoW64.
 7. Steam installed with winetricks.
 8. Steam running with a lot of CEF (chromium) features disabled to it can run properly.
-9. Applied a patch to fix libstrangle compilation on latest gcc.
-10. Added ability to defined custom dnf repos.
-11. Added the "gpu-support" branch which allows hardware acceleration of the launched game when a GPU is available.
+9. Added ability to defined custom dnf repos.
+10. Added the "gpu-support" branch which allows hardware acceleration of the launched game when a GPU is available.
 
 ## How does it work? (briefly)
 
-Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, installs Mesa such that the CPU can render frames (so no GPU needed), and libstrangle to limit Civ to only 2 FPS preventing rendering from consuming too many CPU cycles (though it still takes an enormous amount of CPU).
+Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs VirtuaGL such that a dedicated GPU can render frames at 2 FPS preventing rendering from consuming too many GPU cycles.
 
 ## When was this last tested
 
-This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.15).
+This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.15).  GPU support has _only_ been tested with an AMD GPU.
 
 ## Known Issues / TODO:
 
@@ -32,7 +31,7 @@ This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) 
 
 ## How do you use it?
 
-**1.** Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` and enter the cloned directory with `cd civ5_server_docker`
+**1.** Clone this repository on your Linux server `git clone -b gpu-support https://github.com/bnerickson/civ5_server_docker` and enter the cloned directory with `cd civ5_server_docker`
 
 **2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory.  You can copy those files over yourself or use the provided install_civ.sh script as follows (note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete is a valid, if annoying, workaround): `./install_civ.sh <steam_username> <steam_password>`
 
@@ -42,7 +41,7 @@ This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) 
 
 **4b:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  Otherwise, the Docker build process will use the public Fedora repositories. I have a local Fedora mirror available, so this helps speed up container image build times by around 50%.
 
-**5:** Build the container with the command `docker build -t civ5server "./server" --build-arg NTFY_TOPIC=""` replacing the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.
+**5:** Build the container with the command `docker build -t civ5server "./server" --build-arg NTFY_TOPIC="" --build-arg CARD_LOCATION=""`.  Replace the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.  Replace the empty value in quotes after CARD_LOCATION= with the full path to your primary GPU.  By default this is set to `/dev/dri/card0`).
 
 **6:** Launch the container with the following command: `./run.sh`
 
