@@ -26,8 +26,7 @@ This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) 
 
 ## Known Issues / TODO:
 
-1. Remove overlay_patch.path once https://gitlab.com/torkel104/libstrangle/-/merge_requests/29 is merged.
-2. Create a docker compose for this.
+1. Create a docker compose for this.
 
 ## How do you use it?
 
