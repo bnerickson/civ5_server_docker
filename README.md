@@ -14,14 +14,16 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 7. Steam installed with winetricks.
 8. Steam running with a lot of CEF (chromium) features disabled to it can run properly.
 9. Applied a patch to fix libstrangle compilation on latest gcc.
+10. Added ability to defined custom dnf repos.
+11. Added the "gpu-support" branch which allows hardware acceleration of the launched game when a GPU is available.
 
 ## How does it work? (briefly)
 
-So Civ 5 Server is a Windows-only GUI application, that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine)... This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, installs Mesa such that the CPU can render frames (so no GPU needed), and libstrangle so that Civ only runs at 2 FPS, so rendering doesn't consume the CPU so much (though it still takes an enormous amount of CPU time).
+Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, installs Mesa such that the CPU can render frames (so no GPU needed), and libstrangle to limit Civ to only 2 FPS preventing rendering from consuming too many CPU cycles (though it still takes an enormous amount of CPU).
 
 ## When was this last tested
 
-This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.13).
+This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) running the latest wine at that time (wine 10.15).
 
 ## Known Issues / TODO:
 
