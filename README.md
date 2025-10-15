@@ -38,7 +38,9 @@ This fork was last tested and working 2025/10/02 with Fedora 42 (fedora:latest) 
 
 **3:** Build the container prerequisites with the following command: `./build.sh`
 
-**4:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  The name of the subscription you create will be used in the next step when building the container. All players should subscribe to the nfty topic to receive notifications.
+**4a:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  The name of the subscription you create will be used in the next step when building the container. All players should subscribe to the nfty topic to receive notifications.
+
+**4b:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  Otherwise, the Docker build process will use the public Fedora repositories. I have a local Fedora mirror available, so this helps speed up container image build times by around 50%.
 
 **5:** Build the container with the command `docker build -t civ5server "./server" --build-arg NTFY_TOPIC=""` replacing the empty value in quotes after `NTFY_TOPIC=` with your ntfy subscription name if you choose to use it (Ex: `NTFY_TOPIC="sample_subscription_name"`).  It will not be used if the value is empty.
 
