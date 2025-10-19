@@ -31,6 +31,12 @@ RUN dnf -y update
 RUN dnf -y install \
     cronie \
     inotify-tools \
+    mesa-libGL \
+    mesa-libGL.i686 \
+    mesa-libOSMesa.i686 \
+    mesa-libOSMesa \
+    mesa-dri-drivers \
+    mesa-dri-drivers.i686 \
     openbox \
     pulseaudio \
     pulseaudio-libs.i686 \
@@ -44,6 +50,7 @@ RUN dnf -y install \
     wine \
     winetricks \
     xorg-x11-server-Xvfb
+
 
 RUN dnf clean all -y
 
