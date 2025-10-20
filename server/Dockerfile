@@ -1,7 +1,11 @@
 FROM fedora:latest
 
+# If left unchanged, ntfy is unused.
 ARG NTFY_TOPIC=""
-ARG CARD_LOCATION="/dev/dri/card1"
+
+# If left unused, then the last gpu
+# /dev/dri/cardX is used.
+ARG CARD_LOCATION=""
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
