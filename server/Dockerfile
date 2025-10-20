@@ -1,7 +1,7 @@
 FROM fedora:latest
 
 ARG NTFY_TOPIC=""
-ARG CARD_LOCATION="/dev/dri/card0"
+ARG CARD_LOCATION="/dev/dri/card1"
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
