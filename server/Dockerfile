@@ -1,5 +1,6 @@
 FROM fedora:latest
 
+# If left unchanged, ntfy is unused.
 ARG NTFY_TOPIC=""
 
 # Copy custom repo files IF THEY EXIST
