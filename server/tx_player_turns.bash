@@ -43,14 +43,17 @@ function db_handler {
         fi
 
         # Replace Unit Separator character wtih a comma+space.
+        # Remove DOS carriage return with sed statement
         sqlite_query_formatted=$(echo "${sqlite_query}" | sed $'s/\x1f/, /g')
         while IFS= read -r line; do
             if [[ "${line}" =~ ^TurnNum,.* ]]; then
                 turn_num=$(echo "${line}" | cut --delimiter ',' --fields 2-)
+                turn_num=$(sed 's/\r$//' <<< "${turn_num}")
             elif [[ "${line}" =~ ^PlayersWhoNeedToTakeTheirTurn,.* ]]; then
                 # Remove the leading and trailing quotes and commas
                 # when there are multiple players.
                 player_str=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/^"//g' | sed 's/, ".$//g')
+                player_str=$(sed 's/\r$//' <<< "${player_str}")
             fi
         done <<< "${sqlite_query_formatted}"
 
@@ -93,8 +96,12 @@ function db_handler {
 
     # Update the JSON file if the values changed
     if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ]; then
+        notification_string="Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}"
         if [ "${NTFY_TOPIC}" != "" ]; then
-            curl -d "Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}" ntfy.sh/${NTFY_TOPIC}
+            curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
+        fi
+        if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
+            curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
         fi
         python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
     fi

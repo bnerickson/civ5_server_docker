@@ -1,7 +1,11 @@
 FROM fedora:latest
 
-# If left unchanged, ntfy is unused.
+# If left unchanged, ntfy notifications are not sent
 ARG NTFY_TOPIC=""
+
+# If left unchanged, Discord notifications are not sent
+ARG DISCORD_WEBHOOK_ID=""
+ARG DISCORD_WEBHOOK_TOKEN=""
 
 # If left unused, then the last gpu
 # /dev/dri/cardX is used.
@@ -59,7 +63,7 @@ RUN dnf -y install \
 RUN dnf clean all -y
 
 # Set environment variables here
-ENV DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC CARD_LOCATION=$CARD_LOCATION
+ENV DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC CARD_LOCATION=$CARD_LOCATION DISCORD_WEBHOOK_ID=$DISCORD_WEBHOOK_ID DISCORD_WEBHOOK_TOKEN=$DISCORD_WEBHOOK_TOKEN
 
 WORKDIR /
 
