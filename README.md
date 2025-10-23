@@ -6,7 +6,7 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 ## Major Fork Changes
 
 1. This fork runs on the fedora:latest container.
-2. All AWS-specific statements have been removed in favor of (optional) nfty notifications (see https://docs.ntfy.sh/) that are fired off when a player disconnects and on a weekly basis.  The latter uses a different database based on players that have clicked "Next Turn" ergo it is more accurate.  However, because it's trivial to spam notifications this way, it is only fired off weekly.
+2. All AWS-specific statements have been removed in favor of (optional) nfty and/or Discord notifications (see https://docs.ntfy.sh/) that are fired off when a player disconnects and on a weekly basis.  The latter uses a different database based on players that have clicked "Next Turn" ergo it is more accurate.  However, because it's trivial to spam notifications this way, it is only fired off weekly.
 3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora:latest container was not working for me.
 4. Wine (or winetricks) is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
 5. Wine and winetricks are installed from repos as opposed to being compiled.
