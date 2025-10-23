@@ -1,7 +1,11 @@
 FROM fedora:latest
 
-# If left unchanged, ntfy is unused.
+# If left unchanged, ntfy notifications are not sent
 ARG NTFY_TOPIC=""
+
+# If left unchanged, Discord notifications are not sent
+ARG DISCORD_WEBHOOK_ID=""
+ARG DISCORD_WEBHOOK_TOKEN=""
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
@@ -65,7 +69,7 @@ RUN dnf -y group install development-tools
 RUN dnf clean all -y
 
 # Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC
+ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC DISCORD_WEBHOOK_ID=$DISCORD_WEBHOOK_ID DISCORD_WEBHOOK_TOKEN=$DISCORD_WEBHOOK_TOKEN
 
 WORKDIR /
 
