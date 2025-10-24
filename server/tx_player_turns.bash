@@ -43,17 +43,16 @@ function db_handler {
         fi
 
         # Replace Unit Separator character wtih a comma+space.
-        # Remove DOS carriage return with sed statement
         sqlite_query_formatted=$(echo "${sqlite_query}" | sed $'s/\x1f/, /g')
         while IFS= read -r line; do
             if [[ "${line}" =~ ^TurnNum,.* ]]; then
-                turn_num=$(echo "${line}" | cut --delimiter ',' --fields 2-)
-                turn_num=$(sed 's/\r$//' <<< "${turn_num}")
+                # Remove DOS carriage return with sed statement
+                turn_num=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/\r$//')
             elif [[ "${line}" =~ ^PlayersWhoNeedToTakeTheirTurn,.* ]]; then
                 # Remove the leading and trailing quotes and commas
-                # when there are multiple players.
-                player_str=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/^"//g' | sed 's/, ".$//g')
-                player_str=$(sed 's/\r$//' <<< "${player_str}")
+                # when there are multiple players.  The final sed
+                # removes DOS carriage returns.
+                player_str=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/^"//g' | sed 's/, ".$//g' | sed 's/\r$//')
             fi
         done <<< "${sqlite_query_formatted}"
 
