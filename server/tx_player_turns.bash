@@ -2,6 +2,8 @@
 
 set -o errexit -o nounset -o pipefail
 
+DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
+DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
 # This JSON file is updated whenever a player disconnects
 # from civ.  A user could abuse this by constantly connecting,
 # selecting "Next Turn", re-connecting, cancelling their "Next
@@ -9,6 +11,7 @@ set -o errexit -o nounset -o pipefail
 # is tedious and annoying to do.
 JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
+NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
 SQLITE_DB="TurnStatus-1.db"
 
 function db_handler {
@@ -97,10 +100,20 @@ function db_handler {
     if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ]; then
         notification_string="Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}"
         if [ "${NTFY_TOPIC}" != "" ]; then
+            # notifications are best effort. We
+            # don't want to crash this process if
+            # a notification failed to process.
+            set +o errexit
             curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
+            set -o errexit
         fi
         if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
+            # notifications are best effort. We
+            # don't want to crash this process if
+            # a notification failed to process.
+            set +o errexit
             curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
+            set -o errexit
         fi
         python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
     fi

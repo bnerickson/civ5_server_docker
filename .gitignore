@@ -6,6 +6,11 @@ civ5save/*
 !civ5save/GraphicsSettingsDX9.ini
 !civ5save/UserSettings.ini
 *.repo
+discord_webhook_id.txt
+discord_webhook_token.txt
+ntfy_topic.txt
+docker-compose.yml
+civ5.env
 
 # During Civ 5 installation, a `temp` dir is created
 temp

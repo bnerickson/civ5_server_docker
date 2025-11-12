@@ -1,11 +1,4 @@
-FROM fedora:latest
-
-# If left unchanged, ntfy notifications are not sent
-ARG NTFY_TOPIC=""
-
-# If left unchanged, Discord notifications are not sent
-ARG DISCORD_WEBHOOK_ID=""
-ARG DISCORD_WEBHOOK_TOKEN=""
+FROM fedora:42
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
@@ -13,6 +6,10 @@ ARG DISCORD_WEBHOOK_TOKEN=""
 COPY fedora.repo* /etc/yum.repos.d/fedora.repo
 COPY fedora-updates.repo* /etc/yum.repos.d/fedora-updates.repo
 COPY fedora-cisco-openh264.repo* /etc/yum.repos.d/fedora-cisco-openh264.repo
+
+# Time to wait for Steam to autoupdate loaded from
+# the docker compose.
+ARG STEAM_INSTALL_SLEEP_TIMER
 
 # Update all packages
 RUN dnf -y update
@@ -23,8 +20,9 @@ RUN dnf -y update
 # inotify-tools - Track changes to sqlite dbs for turn status notifications
 # libstdc++-devel - Required to compile libstrangle
 # mesa-libGL - OpenGL software renderer
-# mesa-libOSMesa - Mesa offscreen rendering libraries (hosting a game crashes without this)
+# mesa-libEGL - Mesa offscreen rendering (replacing libOSMesa)
 # openbox - Super-lightweight window manager
+# procps-ng - Required for server_down_notifier.bash script
 # pulseaudio, pulseaudio-libs.i686 - Civ 5 needs somewhere to output audio
 # pipewire-alsa - Wine complains about lib alsa missing, so included just in case
 # sqlite - Query sqlite dbs for player turn status
@@ -43,12 +41,13 @@ RUN dnf -y install \
     libstdc++-devel.i686 \
     mesa-libGL \
     mesa-libGL.i686 \
-    mesa-libOSMesa.i686 \
-    mesa-libOSMesa \
+    mesa-libEGL \
+    mesa-libEGL.i686 \
     mesa-dri-drivers \
     mesa-dri-drivers.i686 \
     mesa-libGL-devel \
     openbox \
+    procps-ng \
     pulseaudio \
     pulseaudio-libs.i686 \
     pipewire-alsa \
@@ -68,18 +67,19 @@ RUN dnf -y group install development-tools
 
 RUN dnf clean all -y
 
-# Force software rendering, and also set $DISPLAY while we're here
-ENV LIBGL_ALWAYS_SOFTWARE=1 MESA_LOADER_DRIVER_OVERRIDE=llvmpipe GALLIUM_DRIVER=llvmpipe DISPLAY=:99 CIV_DATA_ROOT="/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5" NTFY_TOPIC=$NTFY_TOPIC DISCORD_WEBHOOK_ID=$DISCORD_WEBHOOK_ID DISCORD_WEBHOOK_TOKEN=$DISCORD_WEBHOOK_TOKEN
-
 WORKDIR /
 
 # Install Steam for Windows via Winetricks
 # You don't even need to be logged in to Steam, it just needs to be there for the game to not crash when hosting a game
-RUN winetricks --force -q win10 steam
+RUN winetricks --force --unattended dxvk steam
+
+# Add our env file so it can be referenced by cron jobs
+# and within this build
+COPY ./civ5.env /root/civ5.env
 
 # Run steam so that it auto-updates at build time instead of on every container run
 RUN /usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 & \
-sleep 6 && timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true
+sleep 10 && set -o allexport && source /root/civ5.env && set +o allexport && (timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true) && sleep $STEAM_INSTALL_SLEEP_TIMER
 
 # Install libstrangle to limit the framerate
 RUN git clone https://gitlab.com/torkel104/libstrangle.git
@@ -94,12 +94,18 @@ RUN chmod +x /usr/local/bin/tx_player_turns.bash
 COPY ./json_file_helper.py /usr/local/bin/
 RUN chmod +x /usr/local/bin/json_file_helper.py
 
-# Add cron job to notify participants those players whose turns are outstanding using ntfy.sh
+# Add weekly notification script
 COPY ./scheduled_turn_notifications.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/scheduled_turn_notifications.bash
-COPY ./weekly_cron_job /tmp/
-RUN crontab -u root /tmp/weekly_cron_job
-RUN rm --force /tmp/weekly_cron_job
+
+# Add server down notification script
+COPY ./server_down_notifier.bash /usr/local/bin/
+RUN chmod +x /usr/local/bin/server_down_notifier.bash
+
+# Add civ5 cron jobs
+COPY ./civ5_cron_jobs /etc/cron.d/civ5_cron_jobs
+RUN chmod 0644 /etc/cron.d/civ5_cron_jobs
+RUN crontab /etc/cron.d/civ5_cron_jobs
 
 # Add our list-of-stuff-to-execute
 COPY ./supervisord.conf /etc/supervisord.conf
