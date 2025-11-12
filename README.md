@@ -39,7 +39,7 @@ This fork was last tested and working 2025/11/10 with Fedora 42 (fedora:42) runn
 
 **4a:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Add the notification topic name to `./server/ntfy_topic.txt` with no empty newlines below it.  If left blank it will not be used.
 
-**4b:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using Discord, setup a webook in the channel of your choice.  Add the resultant webhook ID and webhook Token values to the `./server/discord_webhook_id.txt` and `./server/discord_webhook_token.txt` files respectively with no empty newlines below them.  If left blank it will not be used.
+**4b:** (Optional) If you wish to setup a simple notification to notify players when it is their turn using Discord, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for details on how this is done).  Add the resultant webhook ID and webhook Token values to the `./server/discord_webhook_id.txt` and `./server/discord_webhook_token.txt` files respectively with no empty newlines below them.  If left blank it will not be used.
 
 **4c:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  Otherwise, the Docker build process will use the public Fedora repositories. I have a local Fedora mirror available, so this helps speed up container image build times by around 50%.  If left blank it will not be used.
 
