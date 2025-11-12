@@ -132,8 +132,8 @@ function main_handler {
     while : ; do
         printf "Verifying %s file is non-empty...\n" "${SQLITE_DB}"
         # Note that if we manually create the file here, then Civ V
-        # fails to create/update the database, therefore we we wait
-        # here for Civ V to create it itself.
+        # fails to create/update the database, therefore we wait here
+        # for Civ V to create it itself.
         if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
             initial_db=1
             sleep 30
