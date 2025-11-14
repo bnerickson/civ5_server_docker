@@ -46,9 +46,9 @@ Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-runnin
 
 **4d:** (Optional) If you wish to edit the time spent waiting for Steam to auto-update during container construction, update the `STEAM_INSTALL_SLEEP_TIMER` argument in `./server/docker-compose.yml`.  This might be necessary if you have a slow Internet connection or slow server in-general.  If Steam does not install successfully, this is the first place to look (default: 120s).
 
-**4e:** (Optional) If you wish to set the display resolution to a custom value, update the `XVFB_RESOLUTION` variable in `civ5.env` to `<width>x<height>x<depth>` (default: 1600x900x24).
+**4e:** (Optional) If you wish to set the display resolution to a custom value, update the `XVFB_RESOLUTION` variable in `./server/civ5.env` to `<width>x<height>x<depth>` (default: 1600x900x24).
 
-**4f:** (Optional) If you wish to set the default frame rate that the GUI runs at to a custom value, update the `XVFB_RESOLUTION` variable in `civ5.env` to `<width>x<height>x<depth>` (default: 2fps).
+**4f:** (Optional) If you wish to set the default frame rate that the GUI runs at to a custom value, update the `DXVK_FRAME_RATE` variable in `./server/civ5.env` (default: 2, that is 2fps).
 
 **5:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).
 
