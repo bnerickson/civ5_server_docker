@@ -32,9 +32,9 @@ This fork was last tested and working 2025/11/13 with Fedora 42 (fedora:42) runn
 
 **1.** Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` and enter the cloned directory with `cd civ5_server_docker`
 
-**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory as a user with sudo privileges using the provided install_civ.sh script as follows: `./install_civ.sh <steam_username> <steam_password>`
+**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory as a user with sudo privileges using the provided install script as follows: `./install_civ.sh <steam_username> <steam_password>`
 
-Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install_civ.sh script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
+Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
 
 **3:** Build the container prerequisites with the following command: `./build.sh`
 

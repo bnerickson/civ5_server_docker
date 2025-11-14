@@ -63,9 +63,6 @@ RUN set -o allexport && source /root/civ5.env && set +o allexport && /usr/bin/Xv
 sleep 10 && set -o allexport && source /root/civ5.env && set +o allexport && (timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true) && \
 sleep ${STEAM_INSTALL_SLEEP_TIMER}
 
-# Remove the xvfb lock file if it still exsts
-RUN rm --force /tmp/.X99-lock
-
 # Fail if we failed to install steam
 # If this step fails, you may need to
 # increase the value of STEAM_INSTALL_SLEEP_TIMER
@@ -103,7 +100,7 @@ RUN crontab /etc/cron.d/civ5_cron_jobs
 # to execute
 COPY ./supervisord.conf /etc/supervisord.conf
 
-# Deploy a debug script to query the dbs used for
+# Install a debug script to query the dbs used for
 # triggered and weekly notifications
 COPY ./debug_script.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/debug_script.bash
