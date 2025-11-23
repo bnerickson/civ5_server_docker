@@ -11,7 +11,7 @@ SCRIPT_TIMEZONE=$(timedatectl show --property=Timezone --value)
 echo "Getting the current working dir"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# Patch MPList.lua for turn and player status tracking
+# Apply our custom lua patches
 PATCH_ALREADY_APPLIED="Reversed (or previously applied) patch detected!"
 declare -A PATCHES=( [MPList.lua.patch]="Assets/UI/InGame/WorldView/MPList.lua" [StagingRoom.lua.patch]="Assets/UI/FrontEnd/Multiplayer/StagingRoom.lua" )
 
