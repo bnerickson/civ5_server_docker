@@ -39,23 +39,7 @@ function perform_mouse_commands {
 }
 
 
-function main {
-    civ5autosaves=$(find "${CIV_DATA_ROOT}/Saves/multi/auto/" -maxdepth 1 -name "*.Civ5Save" -type f)
-    notification_string="There are no Civilization V auto-saves to reload: An administrator must login to start the server."
-
-    if [ "${civ5autosaves}" != "" ]; then
-        perform_mouse_commands
-
-        if [ -f "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
-            # We launched the game successfully
-            notification_string="Civilization V has successfully loaded the most recent auto-save: The game is waiting for ALL players to take their turns."
-            rm --force "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
-        else
-            # We failed to launch the game
-            notification_string="Civilization V has failed to load the most recent auto-save: An administrator must login to start the server."
-        fi
-    fi
-
+function send_notification {
     if [ "${NTFY_TOPIC}" != "" ]; then
         # notifications are best effort. We
         # don't want to crash this process if
@@ -72,6 +56,28 @@ function main {
         curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
         set -o errexit
     fi
+}
+
+
+function main {
+    civ5autosaves=$(find "${CIV_DATA_ROOT}/Saves/multi/auto/" -maxdepth 1 -name "*.Civ5Save" -type f)
+
+    notification_string="There are no Civilization V auto-saves to reload: An administrator must login to start the server."
+    if [ "${civ5autosaves}" == "" ]; then
+        send_notification
+        exit 0
+    fi
+
+    perform_mouse_commands
+
+    notification_string="Civilization V has failed to load the most recent auto-save: An administrator must login to start the server."
+    if [ -f "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
+        # We launched the game successfully
+        notification_string="Civilization V has successfully loaded the most recent auto-save: The game is waiting for ALL players to take their turns."
+        rm --force "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"
+    fi
+
+    send_notification
 }
 
 
