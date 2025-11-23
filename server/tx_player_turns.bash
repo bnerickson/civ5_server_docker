@@ -129,7 +129,7 @@ function db_handler {
     fi
 }
 
-function main_handler {
+function main {
     # Create the json config file if it does not exist.
     if [ ! -f "${JSON_FILE}" ]; then
         echo '{}' > "${JSON_FILE}"
@@ -167,4 +167,4 @@ function main_handler {
     done
 }
 
-main_handler
+main
