@@ -7,14 +7,28 @@ COPY fedora.repo* /etc/yum.repos.d/fedora.repo
 COPY fedora-updates.repo* /etc/yum.repos.d/fedora-updates.repo
 COPY fedora-cisco-openh264.repo* /etc/yum.repos.d/fedora-cisco-openh264.repo
 
-# Time to wait for Steam to autoupdate loaded from
-# the docker compose yml.
+# Define build args
+ARG CIV_DATA_ROOT
+ARG DISPLAY
+ARG STEAM_DLLS
 ARG STEAM_INSTALL_SLEEP_TIMER
+# This is hard-coded because the attempt_restart.bash
+# script relies on exact x,y coordinates to start the
+# server.
+ARG XVFB_RESOLUTION=1600x900x24
+
+# Set environment variables that are originally
+# args used in the image build
+ENV CIV_DATA_ROOT=${CIV_DATA_ROOT}
+ENV DISPLAY=${DISPLAY}
+ENV STEAM_DLLS=${STEAM_DLLS}
+ENV XVFB_RESOLUTION=${XVFB_RESOLUTION}
 
 # Update all packages
 RUN dnf -y update
 
 # cronie - Weekly notifications of player turn status
+# dos2unix - Required to update GraphicsSettingsDX9.ini
 # inotify-tools - Track changes to sqlite dbs for turn status notifications
 # mesa-libGL - OpenGL software renderer
 # mesa-libEGL - Mesa offscreen rendering (replacing libOSMesa)
@@ -26,9 +40,11 @@ RUN dnf -y update
 # tigervnc-server - VNC server to connect to the virtual display
 # wine - Wine native rpm
 # winetricks - Install windows steam and dxvk
+# xdotool - Required for automatic civ5 server start
 # xorg-x11-server-Xvfb - In-memory display server
 RUN dnf -y install \
     cronie \
+    dos2unix \
     inotify-tools \
     mesa-libGL \
     mesa-libGL.i686 \
@@ -45,6 +61,7 @@ RUN dnf -y install \
     tigervnc-server \
     wine \
     winetricks \
+    xdotool \
     xorg-x11-server-Xvfb
 
 RUN dnf clean all -y
@@ -54,13 +71,9 @@ WORKDIR /
 # Install Steam base install for Windows via Winetricks
 RUN winetricks --force --unattended dxvk steam
 
-# Add our env file so it can be referenced by cron jobs
-# and within this build
-COPY ./civ5.env /root/civ5.env
-
 # Run steam full install and update
-RUN set -o allexport && source /root/civ5.env && set +o allexport && /usr/bin/Xvfb ${DISPLAY} -screen 0 ${XVFB_RESOLUTION} -dpi 96 & \
-sleep 10 && set -o allexport && source /root/civ5.env && set +o allexport && (timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true) && \
+RUN /usr/bin/Xvfb ${DISPLAY} -screen 0 ${XVFB_RESOLUTION} -dpi 96 & \
+sleep 10 && (timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true) && \
 sleep ${STEAM_INSTALL_SLEEP_TIMER}
 
 # Fail if we failed to install steam
@@ -68,7 +81,7 @@ sleep ${STEAM_INSTALL_SLEEP_TIMER}
 # increase the value of STEAM_INSTALL_SLEEP_TIMER
 # particularly if your Internet connection
 # is slow or the server itself is slow
-RUN source /root/civ5.env && STEAM_DLLS_ARRAY=(${STEAM_DLLS}) && for dll in "${STEAM_DLLS_ARRAY[@]}"; do if [ ! -f "/root/.wine/drive_c/Program Files (x86)/Steam/${dll}" ]; then echo "failed to find dll ${dll}" && exit 1; fi; done
+RUN STEAM_DLLS_ARRAY=(${STEAM_DLLS}) && for dll in "${STEAM_DLLS_ARRAY[@]}"; do if [ ! -f "/root/.wine/drive_c/Program Files (x86)/Steam/${dll}" ]; then echo "failed to find dll ${dll}" && exit 1; fi; done
 
 # Install notification script that notifies players
 # using ntfy and/or discord whenever a player disconnects
@@ -104,6 +117,14 @@ COPY ./supervisord.conf /etc/supervisord.conf
 # triggered and weekly notifications
 COPY ./debug_script.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/debug_script.bash
+
+# Install autostart script
+COPY ./attempt_autostart.bash /usr/local/bin/attempt_autostart.bash
+RUN chmod +x /usr/local/bin/attempt_autostart.bash
+
+# Install the run_civ script
+COPY ./run_civ.bash /usr/local/bin/run_civ.bash
+RUN chmod +x /usr/local/bin/run_civ.bash
 
 # Start the supervisor service to manage processes
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

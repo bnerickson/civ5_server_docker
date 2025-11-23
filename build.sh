@@ -13,20 +13,24 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Patch MPList.lua for turn and player status tracking
 PATCH_ALREADY_APPLIED="Reversed (or previously applied) patch detected!"
-set +e
-echo "Attempting to apply the MPList.lua patch"
-PATCH_RESULTS=$(patch --forward --reject-file=- "${DIR}/civ5game/Assets/UI/InGame/WorldView/MPList.lua" < "${DIR}/server/MPList.lua.patch" 2>&1)
-if [ ${?} -eq 1 ]; then
-    set -e
-    PATCH_RESULTS_SINGLE_LINE=$(echo "${PATCH_RESULTS}" | tr '\n' ' ')
-    if [[ ${PATCH_RESULTS_SINGLE_LINE} != *${PATCH_ALREADY_APPLIED}* ]]; then
-        echo "${PATCH_RESULTS_SINGLE_LINE}"
-        exit 1
+declare -A PATCHES=( [MPList.lua.patch]="Assets/UI/InGame/WorldView/MPList.lua" [StagingRoom.lua.patch]="Assets/UI/FrontEnd/Multiplayer/StagingRoom.lua" )
+
+for patch in "${!PATCHES[@]}"; do
+    set +e
+    echo "Attempting to apply the ${patch} patch to ${DIR}/civ5game/${PATCHES[${patch}]}"
+    PATCH_RESULTS=$(patch --forward --reject-file=- "${DIR}/civ5game/${PATCHES[${patch}]}" < "${DIR}/server/${patch}" 2>&1)
+    if [ ${?} -eq 1 ]; then
+        set -e
+        PATCH_RESULTS_SINGLE_LINE=$(echo "${PATCH_RESULTS}" | tr '\n' ' ')
+        if [[ ${PATCH_RESULTS_SINGLE_LINE} != *${PATCH_ALREADY_APPLIED}* ]]; then
+            echo "${PATCH_RESULTS_SINGLE_LINE}"
+            exit 1
+        fi
+        echo "Patch ${DIR}/server/${patch} already applied to ${DIR}/civ5game/${PATCHES[${patch}]}, continuing without modification"
+    else
+        set -e
     fi
-    echo "Patch ${DIR}/server/MPList.lua.patch already applied to ${DIR}/civ5game/Assets/UI/InGame/WorldView/MPList.lua, continuing without modification"
-else
-    set -e
-fi
+done
 
 # Create the secrets files that are empty by default
 if [ ! -f "${DIR}/server/ntfy_topic.txt" ]; then
@@ -54,15 +58,7 @@ fi
 # Create default docker compose file
 if [ ! -f "${DIR}/server/docker-compose.yml" ]; then
     echo "Creating default yml file ${DIR}/server/docker-compose.yml"
-    (sed --expression="s|@CIVDIR@|${DIR}|" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
+    (sed --expression="s|@CIVDIR@|${DIR}|" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
 else
     echo "Docker compose yml file ${DIR}/server/docker-compose.yml already exists, continuing without modification"
-fi
-
-# Create default env file
-if [ ! -f "${DIR}/server/civ5.env" ]; then
-    echo "Creating default yml file ${DIR}/server/civ5.env"
-    (sed --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|" < "${DIR}/civ5.env.templ") > "${DIR}/server/civ5.env"
-else
-    echo "Docker compose yml file ${DIR}/server/civ5.env already exists, continuing without modification"
 fi

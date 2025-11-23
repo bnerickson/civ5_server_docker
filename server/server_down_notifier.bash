@@ -4,6 +4,7 @@ set -o errexit -o nounset -o pipefail
 
 DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
 DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
 
 set +o errexit
@@ -14,7 +15,11 @@ if [ "${CIV5_PID}" != "" ]; then
     exit 0
 fi
 
-notification_string="$(date +"%Y%m%d-%H%M%S") THE SYSTEM IS DOWN: Civilization V has crashed and an administrator must login and restart the server"
+# We use this as evidence the server crashed for
+# notification purposes.
+python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" set --parameter crash --value True
+
+notification_string="$(date +"%Y%m%d-%H%M%S") THE SYSTEM IS DOWN: Civilization V has crashed.  Attempting to restart automatically (ETA 5 minutes)..."
 printf "%s\n" "${notification_string}"
 
 if [ "${NTFY_TOPIC}" != "" ]; then

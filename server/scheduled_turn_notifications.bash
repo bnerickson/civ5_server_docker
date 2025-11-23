@@ -7,6 +7,7 @@ source /root/civ5.env
 
 DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
 DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
 NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
 SQLITE_DB="DynamicTurnStatus-1.db"
@@ -22,6 +23,23 @@ if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
     exit 0
 fi
 printf "%s file exists and is non-empty.\n" "${SQLITE_DB}"
+
+# Get the saved JSON file's values
+json_file_params=""
+old_crash_str="False"
+if [ -f "${JSON_FILE}" ]; then
+    json_file_params=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print --parameters crash)
+fi
+while IFS= read -r line; do
+    if [[ "${line}" =~ ^crash:.* ]]; then
+        old_crash_str=$(echo "${line}" | cut --delimiter ':' --fields 2-)
+    fi
+done <<< "${json_file_params}"
+
+if [ "${old_crash_str}" == "True" ]; then
+    printf "The Civilization V server crashed and has not yet recovered.  Exiting...\n"
+    exit 0
+fi
 
 cached_player_str=""
 cached_turn_num=""

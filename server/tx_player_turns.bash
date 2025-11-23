@@ -4,6 +4,10 @@ set -o errexit -o nounset -o pipefail
 
 DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
 DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+# If this is our initial execution then we fire a
+# notification regardless of whether a change in
+# player turn status has occurred.
+INITIAL_SCRIPT_EXECUTION=1
 # This JSON file is updated whenever a player disconnects
 # from civ.  A user could abuse this by constantly connecting,
 # selecting "Next Turn", re-connecting, cancelling their "Next
@@ -81,24 +85,31 @@ function db_handler {
 
     printf "Player disconnected.\nTurn #%s\nPlayers Who Need To Take Their Turn: %s\n" "${turn_num}" "${player_str}"
 
-    old_turn_num=""
+    old_crash_str="False"
     old_player_str=""
+    old_turn_num=""
 
     # Get the saved JSON file's values
-    json_file_params=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print --parameters turn players)
+    json_file_params=$(python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" print)
     while IFS= read -r line; do
-        if [[ "${line}" =~ ^turn:.* ]]; then
-            old_turn_num=$(echo "${line}" | cut --delimiter ':' --fields 2-)
+        if [[ "${line}" =~ ^crash:.* ]]; then
+            old_crash_str=$(echo "${line}" | cut --delimiter ':' --fields 2-)
         elif [[ "${line}" =~ ^players:.* ]]; then
             old_player_str=$(echo "${line}" | cut --delimiter ':' --fields 2-)
+        elif [[ "${line}" =~ ^turn:.* ]]; then
+            old_turn_num=$(echo "${line}" | cut --delimiter ':' --fields 2-)
         fi
     done <<< "${json_file_params}"
 
     printf "(Old) Turn #%s\n(Old) Players Who Need To Take Their Turn: %s\n" "${old_turn_num}" "${old_player_str}"
 
     # Update the JSON file if the values changed
-    if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ]; then
+    if [ "${player_str}" != "${old_player_str}" ] || [ "${turn_num}" != "${old_turn_num}" ] || [ "${INITIAL_SCRIPT_EXECUTION}" -eq 1 ] || [ "${old_crash_str}" == "True" ]; then
+        python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
         notification_string="Turn #${turn_num}: The game is waiting for the following players to take their turns: ${player_str}"
+        if [ "${INITIAL_SCRIPT_EXECUTION}" -eq 1 ]; then
+            INITIAL_SCRIPT_EXECUTION=0
+        fi
         if [ "${NTFY_TOPIC}" != "" ]; then
             # notifications are best effort. We
             # don't want to crash this process if
@@ -115,7 +126,6 @@ function db_handler {
             curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
             set -o errexit
         fi
-        python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" update --turn "${turn_num}" --players "${player_str}"
     fi
 }
 

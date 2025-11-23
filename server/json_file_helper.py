@@ -52,6 +52,7 @@ def parse_args():
         "--parameters",
          help="JSON field to extract from config file",
         dest="parameters",
+        default=["crash", "players", "turn"],
         nargs='+',
     )
 
@@ -75,7 +76,36 @@ def parse_args():
         required=True,
         type=str,
     )
+    parser_update.add_argument(
+        "-r",
+        "--crash",
+        help="Server Crash",
+        dest="crash",
+        required=False,
+        default="False",
+        type=str,
+    )
 
+    parser_set = subparsers.add_parser(
+        "set",
+        help="Set config file with new parameter",
+    )
+    parser_set.add_argument(
+        "-p",
+        "--parameter",
+        help="Parameter name",
+        dest="parameter",
+        required=True,
+        type=str,
+    )
+    parser_set.add_argument(
+        "-v",
+        "--value",
+        help="Parameter Value",
+        dest="value",
+        required=True,
+        type=str,
+    )
     return parser.parse_args()
 
 
@@ -108,16 +138,24 @@ def main():
     if args.task == "print":
         str_to_print = ""
         for parameter in args.parameters:
-            str_to_print += parameter + ":" + civ_status[parameter] + "\n" if parameter in civ_status else ""
+            str_to_print += parameter + ":" + str(civ_status[parameter]) + "\n" if parameter in civ_status else ""
         print(str_to_print)
     elif args.task == "update":
         new_json = {
             "turn": args.turn,
-            "players": args.players
+            "players": args.players,
+            "crash": args.crash
         }
         try:
             with open(args.config, "w", encoding="utf-8") as json_file:
                 json.dump(new_json, json_file)
+        except (KeyError, PermissionError, OSError, json.decoder.JSONDecodeError) as err:
+            logger.error(f"Failed to write to config file, error {err}")
+    elif args.task == "set":
+        civ_status[args.parameter] = args.value
+        try:
+            with open(args.config, "w", encoding="utf-8") as json_file:
+                json.dump(civ_status, json_file)
         except (KeyError, PermissionError, OSError, json.decoder.JSONDecodeError) as err:
             logger.error(f"Failed to write to config file, error {err}")
 
