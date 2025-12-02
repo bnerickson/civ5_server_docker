@@ -13,9 +13,8 @@ done
 # Verify civ5 resolution is set properly
 WINDOWRESX=$(echo ${XVFB_RESOLUTION} | cut --delimiter "x" --fields 1)
 WINDOWRESY=$(echo ${XVFB_RESOLUTION} | cut --delimiter "x" --fields 2)
-sed -i -- "s/WindowResX = .*/WindowResX = ${WINDOWRESX}/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
-sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
-unix2dos "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
+sed -i -- "s/WindowResX = .*/WindowResX = ${WINDOWRESX}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
+sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
 
 # Run the autostart script in the background
 /usr/local/bin/attempt_autostart.bash &

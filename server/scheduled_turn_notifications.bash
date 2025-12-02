@@ -5,11 +5,11 @@ set -o errexit -o nounset -o pipefail
 # Import our env variables for the cron job
 source /root/civ5.env
 
-DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
-DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
+DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
 JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
-NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
+NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
 SQLITE_DB="DynamicTurnStatus-1.db"
 
 printf "Verifying %s file exists and is non-empty...\n" "${SQLITE_DB}"

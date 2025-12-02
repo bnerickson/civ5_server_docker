@@ -28,7 +28,6 @@ ENV XVFB_RESOLUTION=${XVFB_RESOLUTION}
 RUN dnf -y update
 
 # cronie - Weekly notifications of player turn status
-# dos2unix - Required to update GraphicsSettingsDX9.ini
 # inotify-tools - Track changes to sqlite dbs for turn status notifications
 # mesa-libGL - OpenGL software renderer
 # mesa-libEGL - Mesa offscreen rendering (replacing libOSMesa)
@@ -44,7 +43,6 @@ RUN dnf -y update
 # xorg-x11-server-Xvfb - In-memory display server
 RUN dnf -y install \
     cronie \
-    dos2unix \
     inotify-tools \
     mesa-libGL \
     mesa-libGL.i686 \
@@ -69,12 +67,17 @@ RUN dnf clean all -y
 WORKDIR /
 
 # Install Steam base install for Windows via Winetricks
-RUN winetricks --force --unattended dxvk steam
+# nocrashdialog to force civ5 to exit when crashing instead of
+# leaving a dialog box up.
+RUN winetricks --force --unattended nocrashdialog dxvk steam
 
 # Run steam full install and update
 RUN /usr/bin/Xvfb ${DISPLAY} -screen 0 ${XVFB_RESOLUTION} -dpi 96 & \
 sleep 10 && (timeout 500 wineconsole "/root/.wine/drive_c/Program Files (x86)/Steam/Steam.exe" -tcp -no-cef-sandbox -cef-disable-gpu -cef-disable-breakpad -nocrashmonitor || true) && \
 sleep ${STEAM_INSTALL_SLEEP_TIMER}
+
+# Remove X11 lock file
+RUN DISPLAY_NUMBER=$(echo ${DISPLAY} | cut --delimiter ':' --fields 2) && rm --force /tmp/.X${DISPLAY_NUMBER}-lock
 
 # Fail if we failed to install steam
 # If this step fails, you may need to
