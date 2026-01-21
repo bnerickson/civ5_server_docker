@@ -25,7 +25,7 @@ ENV STEAM_DLLS=${STEAM_DLLS}
 ENV XVFB_RESOLUTION=${XVFB_RESOLUTION}
 
 # Update all packages
-RUN dnf -y update
+RUN dnf --assumeyes update
 
 # cronie - Weekly notifications of player turn status
 # inotify-tools - Track changes to sqlite dbs for turn status notifications
@@ -62,7 +62,7 @@ RUN dnf -y install \
     xdotool \
     xorg-x11-server-Xvfb
 
-RUN dnf clean all -y
+RUN dnf clean all --assumeyes
 
 WORKDIR /
 
