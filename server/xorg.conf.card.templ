@@ -1,0 +1,37 @@
+Section "ServerLayout"
+        Identifier     "X.org Configured"
+        Screen      0  "Screen0" 0 0
+EndSection
+
+Section "Files"
+        ModulePath   "/usr/lib64/xorg/modules"
+        FontPath     "catalogue:/etc/X11/fontpath.d"
+        FontPath     "built-ins"
+EndSection
+
+Section "Module"
+        Load  "glx"
+EndSection
+
+Section "Monitor"
+        Identifier   "Monitor0"
+        VendorName   "Monitor Vendor"
+        ModelName    "Monitor Model"
+EndSection
+
+Section "Device"
+        Identifier  "Card0"
+        Driver      "modesetting"
+        BusID       "PCI:@GPU_BUSID@"
+EndSection
+
+Section "Screen"
+        Identifier "Screen0"
+        Device     "Card0"
+        Monitor    "Monitor0"
+        SubSection "Display"
+                Viewport   0 0
+                Depth      @BIT_DEPTH@
+                Modes      "@DESKTOP_RESOLUTION@"
+        EndSubSection
+EndSection

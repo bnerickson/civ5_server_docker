@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 
 # Import our env variables for the cron job
-source /root/civ5.env
+source /home/${CONTAINER_USERNAME}/civ5.env
 
 DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
 DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")

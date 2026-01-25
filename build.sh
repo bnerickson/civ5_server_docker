@@ -3,6 +3,15 @@
 # Bail out if any command fails
 set -e
 
+# Must be run as a non-root user
+CONTAINER_USERNAME=$(whoami)
+CONTAINER_UID=$(id --uid)
+CONTAINER_GID=$(id --gid)
+if [ ${CONTAINER_UID} -eq 0 ]; then
+    echo "Container must be run as a non-root user.  umu-launcher only supports running as a non-root user."
+    exit 1
+fi
+
 # Get the timezone for the civ5.env
 echo "Getting the system timezone"
 SCRIPT_TIMEZONE=$(timedatectl show --property=Timezone --value)
@@ -58,7 +67,7 @@ fi
 # Create default docker compose file
 if [ ! -f "${DIR}/server/docker-compose.yml" ]; then
     echo "Creating default yml file ${DIR}/server/docker-compose.yml"
-    (sed --expression="s|@CIVDIR@|${DIR}|" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
+    (sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|" --expression="s|@CIVDIR@|${DIR}|" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
 else
     echo "Docker compose yml file ${DIR}/server/docker-compose.yml already exists, continuing without modification"
 fi
