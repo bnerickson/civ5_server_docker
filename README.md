@@ -5,17 +5,18 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 
 ## Major Fork Changes
 
-1. This fork runs off of a fedora container.
+1. This fork runs on a fedora container.
 2. All AWS-specific statements have been removed in favor of optional nfty (see https://docs.ntfy.sh/) and/or Discord notifications (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) that are fired off when a player disconnects and on a weekly basis.  The latter uses a different database based on players that have clicked "Next Turn" ergo it is more accurate.  However, because it's trivial to spam notifications this way, it is only triggered weekly on the backend.
 3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora container was not working for me.
-4. Wine is "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
-5. Wine and winetricks are installed from repos as opposed to being compiled.
-6. WINEARCH=win32 has been removed, it is deprecated in the latest wine and works fine as-is w/WoW64.
-7. Steam and DXVK installed with winetricks.
+4. WINE/Proton are "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
+5. winetricks and umu-launcher are installed from repos as opposed to being compiled.
+6. WINEARCH=win32 has been removed, it is deprecated and replacement WoW64-support is complete in WINE.
+7. Steam installed via winetricks.
 8. Eliminate requirement for Steam to run in the background while Civ5 is running.
-9. Added ability to define custom dnf repos.
-10. [unmaintained] Added the "gpu-support" branch which allows hardware acceleration of the launched game when a GPU is available.
-11. Added script utilizing xdotool to automatically reload the most recent autosave when the server is started.
+9. Steam initial execution (to grab required DLLs) now works because CEF (chromium) features are now disabled.
+10. Added ability to define custom dnf repos.
+11. Runs with a dedicated GPU to offload some processing from the CPU.
+12. Added script utilizing xdotool to automatically reload the most recent autosave when the server is started.
 
 ## How does it work? (briefly)
 
@@ -25,21 +26,23 @@ The attempt_autostart.bash script will, using xdotool and precise mouse coordina
 
 ## When was this last tested
 
-This fork was last tested and working 2025/11/23 with Fedora 42 (fedora:42) running wine 10.15 w/dxvk 2.7.1.
+This fork was last tested and working 2026/01/25 with fedora:43 running Proton-GE 10.29.  GPU support has _only_ been tested with an AMD GPU.
 
 ## Known Issues / TODO:
 
-1. Get this working on Fedora 43.  A version using proton and umu-launcher is currently in the works, but will probaby exist on its own branch because it requires elevated privileges on the container itself.
+None
 
 ## Instructions
 
-**1.** Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` and enter the cloned directory with `cd civ5_server_docker`
+**1.** Clone this repository on your Linux server `git clone -b umu-proton-gpu https://github.com/bnerickson/civ5_server_docker` as a non-root user with sudo priviledges and enter the cloned directory with `cd civ5_server_docker`
 
-**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory as a user with sudo privileges using the provided install script as follows: `./install_civ.sh <steam_username> <steam_password>`
+**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory using the provided install script as follows: `./install_civ.sh <steam_username> <steam_password>`
 
 Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
 
-**3:** Build the container prerequisites with the following command: `./build.sh`
+**3:** Get your GPU's PCI BusID.  The output of lspci will give the BusID in hex format for the bus, device, and byte function values of your card.  These values must be converted to decimal for xorg config.  For instance, BusID value 50:00.0 in LSPCI corresponds to BusID value 80:0:0 as the appropriate decimal xorg value.
+
+**4:** Build the container prerequisites with the following command: `./build.sh`.  When prompted, enter in the GPU PCI BusID determined in the step above.
 
 **4a:** (Optional) If you wish to notify users of turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Add the chosen notification topic name to `./server/ntfy_topic.txt` with no empty newlines below it.  If left blank it will not be used.
 

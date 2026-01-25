@@ -12,7 +12,7 @@ services:
         - CONTAINER_UID=@CONTAINER_UID@
         - CONTAINER_USERNAME=@CONTAINER_USERNAME@
         - DISPLAY=:99
-        - GPU_BUSID=1:0:0
+        - GPU_BUSID=@GPU_BUSID@
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=120
     environment:
@@ -24,7 +24,7 @@ services:
       - VNC_PORT=5900
     volumes:
       - "@CIVDIR@/civ5game:/home/@CONTAINER_USERNAME@/civ5game"
-      - "@CIVDIR@/civ5save:/home/$CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/@CONTAINER_USERNAME@/Documents/My Games/Sid Meier's Civilization 5"
+      - "@CIVDIR@/civ5save:/home/@CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/@CONTAINER_USERNAME@/Documents/My Games/Sid Meier's Civilization 5"
     ports:
       - "127.0.0.1:5900:5900/tcp"
       - "0.0.0.0:27016:27016/udp"
