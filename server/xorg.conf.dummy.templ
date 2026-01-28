@@ -14,9 +14,9 @@ Section "Screen"
     Identifier      "Default Screen"
     Monitor         "Configured Monitor"
     Device          "Configured Video Device"
-    DefaultDepth    24
+    DefaultDepth    @BIT_DEPTH@
     SubSection      "Display"
-    Depth           24
-    Modes           "@DESKTOP_RESOLUTION@"
+        Depth           @BIT_DEPTH@
+        Modes           "@DESKTOP_RESOLUTION@"
     EndSubSection
 EndSection

@@ -93,7 +93,11 @@ RUN useradd --shell /bin/bash --create-home --uid ${CONTAINER_UID} --gid ${CONTA
 RUN sudo --user=${CONTAINER_USERNAME} winetricks --force --unattended nocrashdialog steam
 
 # Copy our xorg dummy config over.
-COPY ./xorg.conf.dummy /etc/X11/xorg.conf.d/
+COPY ./xorg.conf.dummy.templ /etc/X11/xorg.conf.d/
+
+# Replace the desktop resolution, bit depth, and gpu card bus id in the xorg dummy conf
+RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" < "/etc/X11/xorg.conf.d/xorg.conf.dummy.templ" > "/etc/X11/xorg.conf.d/xorg.conf.dummy")
+RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.dummy.templ
 
 # Copy our xorg card config over.
 COPY ./xorg.conf.card.templ /etc/X11/xorg.conf.d/
