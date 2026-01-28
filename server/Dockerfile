@@ -14,6 +14,7 @@ ARG CONTAINER_UID
 ARG CONTAINER_USERNAME
 ARG DISPLAY
 ARG GPU_BUSID
+ARG GE_PROTON_VERSION
 ARG STEAM_DLLS
 ARG STEAM_INSTALL_SLEEP_TIMER
 # This is hard-coded because the attempt_restart.bash
@@ -27,6 +28,7 @@ ENV CIV_DATA_ROOT=${CIV_DATA_ROOT}
 ENV CONTAINER_USERNAME=${CONTAINER_USERNAME}
 ENV DISPLAY=${DISPLAY}
 ENV GPU_BUSID=${GPU_BUSID}
+ENV GE_PROTON_VERSION=${GE_PROTON_VERSION}
 ENV STEAM_DLLS=${STEAM_DLLS}
 ENV DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION}
 
@@ -97,7 +99,7 @@ COPY ./xorg.conf.dummy /etc/X11/xorg.conf.d/
 COPY ./xorg.conf.card.templ /etc/X11/xorg.conf.d/
 
 # Replace the desktop resolution, bit depth, and gpu card bus id in the xorg card conf
-RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) GPU_BUSID=${GPU_BUSID} && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|" --expression="s|@GPU_BUSID@|${GPU_BUSID}|" < "/etc/X11/xorg.conf.d/xorg.conf.card.templ" > "/etc/X11/xorg.conf.d/xorg.conf.card")
+RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) GPU_BUSID=${GPU_BUSID} && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID}|g" < "/etc/X11/xorg.conf.d/xorg.conf.card.templ" > "/etc/X11/xorg.conf.d/xorg.conf.card")
 RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.card.templ
 
 # Run steam full install and update
@@ -120,7 +122,7 @@ RUN STEAM_DLLS_ARRAY=(${STEAM_DLLS}) && for dll in "${STEAM_DLLS_ARRAY[@]}"; do 
 COPY ./proton_ge_downloader.bash /home/${CONTAINER_USERNAME}/
 RUN sudo --user=${CONTAINER_USERNAME} mkdir -p /home/${CONTAINER_USERNAME}/proton
 RUN chmod +x /home/${CONTAINER_USERNAME}/proton_ge_downloader.bash
-RUN sudo --user=${CONTAINER_USERNAME} /home/${CONTAINER_USERNAME}/proton_ge_downloader.bash
+RUN sudo --user=${CONTAINER_USERNAME} /home/${CONTAINER_USERNAME}/proton_ge_downloader.bash ${GE_PROTON_VERSION}
 RUN rm /home/${CONTAINER_USERNAME}/proton_ge_downloader.bash
 
 # Setup GE-Proton symlink
