@@ -90,7 +90,7 @@ Replace the `WorkingDirectory=/home/game/containers/civ5_server_docker/server` l
 
 `27016 UDP` is the only port you need to allow incoming traffic through. If you're just using plain `iptables` or `nftables` as a firewall, bringing up the docker container should open that port for you.
 
-## Thanks
+## Credits
 
 A big thanks goes out to:
 
@@ -100,3 +100,7 @@ A big thanks goes out to:
 4. https://gitlab.com/Hexarmored
 
 Without their work/forks this would not work at all.
+
+The Proton-GE script is modified from this repo (thanks, jerluc):
+
+* https://github.com/jerluc/proton-ge-downloader
