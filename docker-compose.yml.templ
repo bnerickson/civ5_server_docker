@@ -7,8 +7,12 @@ services:
     build:
       context: "./"
       args:
-        - CIV_DATA_ROOT=/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5
+        - CIV_DATA_ROOT=/home/@CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/game/Documents/My Games/Sid Meier's Civilization 5
+        - CONTAINER_GID=@CONTAINER_GID@
+        - CONTAINER_UID=@CONTAINER_UID@
+        - CONTAINER_USERNAME=@CONTAINER_USERNAME@
         - DISPLAY=:99
+        - GE_PROTON_VERSION=latest
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=120
     environment:
@@ -20,8 +24,8 @@ services:
       - TZ=@TIMEZONE@
       - VNC_PORT=5900
     volumes:
-      - "@CIVDIR@/civ5game:/root/civ5game"
-      - "@CIVDIR@/civ5save:/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5"
+      - "@CIVDIR@/civ5game:/home/@CONTAINER_USERNAME@/civ5game"
+      - "@CIVDIR@/civ5save:/home/@CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/@CONTAINER_USERNAME@/Documents/My Games/Sid Meier's Civilization 5"
     ports:
       - "127.0.0.1:5900:5900/tcp"
       - "0.0.0.0:27016:27016/udp"
@@ -29,6 +33,7 @@ services:
       - ntfy_topic
       - discord_webhook_id
       - discord_webhook_token
+    privileged: true
 secrets:
   ntfy_topic:
     file: ntfy_topic.txt

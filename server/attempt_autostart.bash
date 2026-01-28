@@ -18,12 +18,12 @@ SQLITE_DB="GameLaunch-1.db"
 # "1105 750"  - Click on the "Load Game" button
 # "925 250"   - Click on the observer ready checkbox
 # "1115 860"  - Click on the "Launch Game" button
-MOUSE_MOVE_ARRAY=("800 655" "725 865" "1215 240" "1000 315" "1105 750" "925 250" "1115 860")
+MOUSE_MOVE_ARRAY=("800 670" "725 865" "1215 240" "1000 315" "1105 750" "925 250" "1115 860")
 
 
 function perform_mouse_commands {
     # Wait for civ5 to load
-    sleep 60
+    sleep 90
 
     window_id=$(xdotool search --onlyvisible --name "Sid*")
 
