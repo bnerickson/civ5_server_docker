@@ -1,7 +1,7 @@
 civ5_docker_server
 ==================
 
-Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on a headless, GPU-less Linux machine.
+Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on a headless Linux machine.
 
 ## Major Fork Changes
 
@@ -15,18 +15,18 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 8. Eliminate requirement for Steam to run in the background while Civ5 is running.
 9. Steam initial execution (to grab required DLLs) now works because CEF (chromium) features are now disabled.
 10. Added ability to define custom dnf repos.
-11. Runs with a dedicated GPU to offload some processing from the CPU.
-12. Added script utilizing xdotool to automatically reload the most recent autosave when the server is started.
+11. Added script utilizing xdotool to automatically reload the most recent autosave when the server is started.
+12. Runs with a dedicated GPU to offload some processing from the CPU.
 
 ## How does it work? (briefly)
 
-Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames (so no GPU needed).
+Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames.  However, in this branch the GPU is used to offload the graphics processing.
 
-The attempt_autostart.bash script will, using xdotool and precise mouse coordinates based on the fixed 1600x900 desktop resolution, select the latest autosave and automatically start the server.  This takes place every time the server is started whether when the container starts or when Civilization V crashes.  If there is no autosave present, then the server must be configured manually via the GUI via VNC before it will start.  Therefore, if you wish to start and configure a brand new game, be sure to delete the old autosaves in the `./civ5save/Saves/multi/auto` directory first.
+The attempt_autostart.bash script will, using xdotool and precise mouse coordinates based on the fixed 1600x900 desktop resolution, select the latest autosave and automatically start the server.  This takes place every time the server is started either when the container starts normally or when Civilization V crashes and restarts.  If there is no autosave present, then the server must be configured manually via the GUI via VNC before it will start.  Therefore, if you wish to start and configure a brand new game, be sure to delete the old autosaves in the `./civ5save/Saves/multi/auto` directory first.
 
 ## When was this last tested
 
-This fork was last tested and working 2026/01/25 with fedora:43 running Proton-GE 10.29.  GPU support has _only_ been tested with an AMD GPU.
+This fork was last tested and working 2026/01/25 with fedora:43 running Proton-GE 10.29.  GPU support has _only_ been tested with an AMD GPU (in particular the Radeon RX 550).
 
 ## Known Issues / TODO:
 
