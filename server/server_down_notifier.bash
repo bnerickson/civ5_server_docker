@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
 set -o errexit -o nounset -o pipefail
+# Force subshells (function calls) to inherit errexit.
+shopt -s inherit_errexit
 
 DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
 DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})

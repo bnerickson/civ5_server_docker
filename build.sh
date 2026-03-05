@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Bail out if any command fails
-set -e
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+set -o errexit -o nounset -o pipefail
+# Force subshells (function calls) to inherit errexit.
+shopt -s inherit_errexit
 
 # Must be run as a non-root user
 CONTAINER_USERNAME=$(whoami)

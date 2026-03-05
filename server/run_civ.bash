@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-set -o nounset -o pipefail
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+set -o errexit -o nounset -o pipefail
+# Force subshells (function calls) to inherit errexit.
+shopt -s inherit_errexit
 
 sleep 30
 
@@ -20,7 +23,10 @@ sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/G
 /usr/local/bin/attempt_autostart.bash &
 
 # Run civ5 in WINE
+# Disable errexit to fire the server_down_notifier.bash script if civ5 crashes
+set +o errexit
 cd /home/${CONTAINER_USERNAME} && sudo --user=${CONTAINER_USERNAME} --preserve-env WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH="/home/${CONTAINER_USERNAME}/proton/GE-Proton" umu-run /home/${CONTAINER_USERNAME}/civ5game/CivilizationV_Server.exe
+set -o errexit
 
 # If civ fails (the command before has terminated),
 # then fire off a notification that it has crashed
