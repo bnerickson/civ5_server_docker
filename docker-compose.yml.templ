@@ -8,7 +8,11 @@ services:
       context: "./"
       args:
         - CIV_DATA_ROOT=/root/.wine/drive_c/users/root/Documents/My Games/Sid Meier's Civilization 5
+        - CONTAINER_GID=10015
+        - CONTAINER_UID=10015
+        - CONTAINER_USERNAME=game
         - DISPLAY=:99
+        - GE_PROTON_VERSION=GE-Proton10-32
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=120
     environment:
@@ -29,6 +33,7 @@ services:
       - ntfy_topic
       - discord_webhook_id
       - discord_webhook_token
+    privileged: true
 secrets:
   ntfy_topic:
     file: ntfy_topic.txt

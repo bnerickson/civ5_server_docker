@@ -14,8 +14,8 @@ if [ "${GE_PROTON_VERSION}" = "latest" ]; then
     DOWNLOAD_URL=$(echo $TARBALL_ASSET | jq -r '.browser_download_url')
     FILENAME=$(echo $TARBALL_ASSET | jq -r '.name')
 else
-    DOWNLOAD_URL="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${GE_PROTON_VERSION}/${FILENAME}"
     FILENAME="${GE_PROTON_VERSION}.tar.gz"
+    DOWNLOAD_URL="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${GE_PROTON_VERSION}/${FILENAME}"
 fi
 
 OUTPUT_PARENT_DIR="${HOME}/proton"

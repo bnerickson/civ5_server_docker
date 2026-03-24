@@ -25,7 +25,7 @@ The attempt_autostart.bash script will, using xdotool and precise mouse coordina
 
 ## When was this last tested
 
-This fork was last tested and working 2025/11/23 with Fedora 42 (fedora:42) running wine 10.15 w/dxvk 2.7.1.
+This fork was last tested and working 2026/03/23 with fedora:43 running Proton-GE 10.32. !!! Proton-GE 10.33+ IS NOT WORKING !!!
 
 ## Known Issues / TODO:
 
