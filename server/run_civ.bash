@@ -25,7 +25,7 @@ sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/G
 # Run civ5 in WINE
 # Disable errexit to fire the server_down_notifier.bash script if civ5 crashes
 set +o errexit
-cd /home/${CONTAINER_USERNAME} && sudo --user=${CONTAINER_USERNAME} --preserve-env WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH="/home/${CONTAINER_USERNAME}/proton/GE-Proton" umu-run /home/${CONTAINER_USERNAME}/civ5game/CivilizationV_Server.exe
+sudo --user="${CONTAINER_USERNAME}" --preserve-env bash -c 'cd /home/"${CONTAINER_USERNAME}"/civ5game && WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH=/home/"${CONTAINER_USERNAME}"/proton/GE-Proton umu-run /home/"${CONTAINER_USERNAME}"/civ5game/CivilizationV_Server.exe'
 set -o errexit
 
 # If civ fails (the command before has terminated),
