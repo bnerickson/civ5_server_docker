@@ -25,7 +25,7 @@ MOUSE_MOVE_ARRAY=("800 670" "725 865" "1215 240" "1000 315" "1105 750" "925 250"
 
 function perform_mouse_commands {
     # Wait for civ5 to load
-    sleep 90
+    sleep 120
 
     window_id=$(xdotool search --onlyvisible --name "Sid*")
 
