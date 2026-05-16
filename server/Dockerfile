@@ -1,4 +1,4 @@
-FROM fedora:42
+FROM fedora:44
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
@@ -81,6 +81,12 @@ RUN dnf clean all --assumeyes
 
 WORKDIR /
 
+# Create container non-root user primary group
+RUN groupadd --gid ${CONTAINER_GID} ${CONTAINER_USERNAME}
+
+# Create container non-root user
+RUN useradd --shell /bin/bash --create-home --uid ${CONTAINER_UID} --gid ${CONTAINER_GID} ${CONTAINER_USERNAME}
+
 # Install Steam base install for Windows via Winetricks
 # nocrashdialog to force civ5 to exit when crashing instead of
 # leaving a dialog box up.
@@ -132,14 +138,6 @@ RUN PROTON_LATEST_PATH=$(find /home/${CONTAINER_USERNAME}/proton/GE-Proton* -max
 # containers, but prerequisites are downloaded
 # and nocrashdialog is set which is what we want
 RUN cd /home/${CONTAINER_USERNAME} && (sudo --user=${CONTAINER_USERNAME} -E WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH="/home/${CONTAINER_USERNAME}/proton/GE-Proton" umu-run winetricks nocrashdialog || true)
-
-# Install notification script that notifies players
-# using ntfy and/or discord whenever a player disconnects
-# whose turn is outstanding unless there is no change
-COPY ./tx_player_turns.bash /usr/local/bin/
-RUN chmod +x /usr/local/bin/tx_player_turns.bash
-COPY ./json_file_helper.py /usr/local/bin/
-RUN chmod +x /usr/local/bin/json_file_helper.py
 
 # Install notification script that notifies players
 # using ntfy and/or discord whenever a player disconnects
