@@ -26,7 +26,7 @@ The attempt_autostart.bash script will, using xdotool and precise mouse coordina
 
 ## When was this last tested
 
-This fork was last tested and working 2026/03/23 with fedora:43 running Proton-GE 10.33.  GPU support has _only_ been tested with an AMD GPU (in particular the Radeon RX 550).
+This fork was last tested and working 2026/05/18 with fedora:44 running Proton-GE 10.34.  GPU support has _only_ been tested with an AMD GPU (in particular the Radeon RX 550).
 
 ## Known Issues / TODO:
 
