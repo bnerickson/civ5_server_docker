@@ -114,7 +114,7 @@ if [ "${NTFY_TOPIC}" != "" ]; then
     # don't want to crash this process if
     # a notification failed to process.
     set +o errexit
-    curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
+    curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
     set -o errexit
 fi
 if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then

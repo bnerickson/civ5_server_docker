@@ -10,7 +10,7 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora container was not working for me.
 4. WINE/Proton are "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
 5. winetricks and umu-launcher are installed from repos as opposed to being compiled.
-6. WINEARCH=win32 has been removed, it is deprecated and replacement WoW64-support is complete in WINE.
+6. WINEARCH=win32 has been removed.  It is deprecated and its replacement--WoW64--is feature-complete in WINE.
 7. Steam installed via winetricks.
 8. Eliminate requirement for Steam to run in the background while Civ5 is running.
 9. Steam initial execution (to grab required DLLs) now works because CEF (chromium) features are now disabled.
@@ -20,7 +20,7 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 
 ## How does it work? (briefly)
 
-Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames.  However, in this branch the GPU is used to offload the graphics processing.
+Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames.  However, in this branch a GPU is used to offload the graphics processing.
 
 The attempt_autostart.bash script will, using xdotool and precise mouse coordinates based on the fixed 1600x900 desktop resolution, select the latest autosave and automatically start the server.  This takes place every time the server is started either when the container starts normally or when Civilization V crashes and restarts.  If there is no autosave present, then the server must be configured manually via the GUI via VNC before it will start.  Therefore, if you wish to start and configure a brand new game, be sure to delete the old autosaves in the `./civ5save/Saves/multi/auto` directory first.
 
@@ -56,11 +56,11 @@ Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-runnin
 
 **4f:** (Optional) If you wish to set the version of ProtonGE to download and install, update the `GE_PROTON_VERSION` argument in `./server/docker-compose.yml` in the format `GE-Proton<version>` (Ex: GE-Proton10-29) (default: latest, the latest version of GE-Proton).
 
-**5:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).  If the build crashes when installing/running Steam via winetricks, rebuilding the container again is often enough to fix the issue.
+**5:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).  If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
 
 **6:** After the container starts running, you should be able to remote in with VNC. The container is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
 
-**7:** Setup the game through the VNC connection, make sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
+**7:** Setup the game through the VNC connection.  The mouse cursor WILL jump around because it is attempting to autostart (ignore it).  Mmake sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
 
 ## systemd Integration
 

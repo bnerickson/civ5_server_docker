@@ -5,8 +5,8 @@ set -o errexit -o nounset -o pipefail
 # Force subshells (function calls) to inherit errexit.
 shopt -s inherit_errexit
 
-DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
-DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
+DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
 # If this is our initial execution then we fire a
 # notification regardless of whether a change in
 # player turn status has occurred.
@@ -18,7 +18,7 @@ INITIAL_SCRIPT_EXECUTION=1
 # is tedious and annoying to do.
 JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
-NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
+NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
 SQLITE_DB="TurnStatus-1.db"
 
 function db_handler {
@@ -118,7 +118,7 @@ function db_handler {
             # don't want to crash this process if
             # a notification failed to process.
             set +o errexit
-            curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
+            curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
             set -o errexit
         fi
         if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
