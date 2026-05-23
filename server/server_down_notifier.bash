@@ -5,10 +5,10 @@ set -o errexit -o nounset -o pipefail
 # Force subshells (function calls) to inherit errexit.
 shopt -s inherit_errexit
 
-DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
-DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
+DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
+DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
 JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
-NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
+NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
 
 set +o errexit
 CIV5_PID=$(pgrep --full --exact CivilizationV_Server.exe)
@@ -28,8 +28,9 @@ printf "%s\n" "${notification_string}"
 if [ "${NTFY_TOPIC}" != "" ]; then
     while : ; do
         set +o errexit
-        curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
-        if [ "${?}" = 0 ]; then
+        curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
+        curl_cmd_exit_code="${?}"
+        if [ "${curl_cmd_exit_code}" = 0 ]; then
             # Successfully notified
             set -o errexit
             break
@@ -43,7 +44,8 @@ if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; th
     while : ; do
         set +o errexit
         curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
-        if [ "${?}" = 0 ]; then
+        curl_cmd_exit_code="${?}"
+        if [ "${curl_cmd_exit_code}" = 0 ]; then
             # Successfully notified
             set -o errexit
             break

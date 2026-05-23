@@ -9,11 +9,11 @@ set -o errexit -o nounset -o pipefail
 # Force subshells (function calls) to inherit errexit.
 shopt -s inherit_errexit
 
-DISCORD_WEBHOOK_ID=$(cat ${DISCORD_WEBHOOK_ID_FILE})
-DISCORD_WEBHOOK_TOKEN=$(cat ${DISCORD_WEBHOOK_TOKEN_FILE})
-NTFY_TOPIC=$(cat ${NTFY_TOPIC_FILE})
+DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
+DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
+NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
 SQLITE_DB="GameLaunch-1.db"
-# "800 655"   - Click on the "Click to Continue" button
+# "800 670"   - Click on the "Click to Continue" button
 # "725 865"   - Click on the "Load Game" button
 # "1215 240"  - Click on the "autosaves" checkbox
 # "1000 315"  - Click on the latest autosave
@@ -30,8 +30,8 @@ function perform_mouse_commands {
     window_id=$(xdotool search --onlyvisible --name "Sid*")
 
     for mouse_coordinates in "${MOUSE_MOVE_ARRAY[@]}"; do
-        xdotool windowfocus --sync ${window_id}
-        xdotool mousemove ${mouse_coordinates}
+        xdotool windowfocus --sync "${window_id}"
+        xdotool mousemove "${mouse_coordinates}"
         xdotool click 1
         sleep 10
     done
@@ -47,7 +47,7 @@ function send_notification {
         # don't want to crash this process if
         # a notification failed to process.
         set +o errexit
-        curl -d "${notification_string}" ntfy.sh/${NTFY_TOPIC}
+        curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
         set -o errexit
     fi
     if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
