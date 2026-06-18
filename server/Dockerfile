@@ -20,14 +20,14 @@ ARG STEAM_INSTALL_SLEEP_TIMER
 # This is hard-coded because the attempt_restart.bash
 # script relies on exact x,y coordinates to start the
 # server.
-ARG DESKTOP_RESOLUTION=1600x900x24
+ARG DESKTOP_RESOLUTION=1920x1080x16
 
 # Set environment variables that are originally
 # args used in the image build
 ENV CIV_DATA_ROOT=${CIV_DATA_ROOT}
 ENV CONTAINER_USERNAME=${CONTAINER_USERNAME}
 ENV DISPLAY=${DISPLAY}
-#ENV GPU_BUSID=${GPU_BUSID}
+ENV GPU_BUSID=${GPU_BUSID}
 ENV GE_PROTON_VERSION=${GE_PROTON_VERSION}
 ENV STEAM_DLLS=${STEAM_DLLS}
 ENV DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION}
@@ -38,7 +38,10 @@ RUN dnf --assumeyes install --nogpgcheck --repofrompath 'terra,https://repos.fyr
 # Update all packages
 RUN dnf --assumeyes update
 
+# cpulimit - Limits cpu utilization of Civ 5
 # cronie - Weekly notifications of player turn status
+# glibc-langpack-en - locale installation for umu-run (clears some warnings)
+# glibc-locale-source - locale installation for umu-run (clears some warnings)
 # inotify-tools - Track changes to sqlite dbs for turn status notifications
 # jq - Required for proton_ge_downloader.bash script
 # mesa-libGL - OpenGL software renderer
@@ -46,7 +49,6 @@ RUN dnf --assumeyes update
 # mesa-vulkan-drivers - Mesa vulkan drivers
 # openbox - Super-lightweight window manager
 # procps-ng - Required for server_down_notifier.bash script
-# pulseaudio - Civ 5 needs somewhere to output audio
 # sqlite - Query sqlite dbs for player turn status
 # supervisor - Run and monitor processes
 # tigervnc-server - VNC server to connect to the virtual display
@@ -55,8 +57,12 @@ RUN dnf --assumeyes update
 # xdotool - Required for automatic civ5 server start
 # xorg-x11-server-Xorg - Display server
 # xorg-x11-drv-dummy - Ouput to a dummy screen during steam install
+# xorg-x11-drv-intel - Intel driver support for X11
 RUN dnf -y install \
+    cpulimit \
     cronie \
+    glibc-langpack-en \
+    glibc-locale-source \
     inotify-tools \
     jq \
     mesa-libGL \
@@ -67,7 +73,6 @@ RUN dnf -y install \
     mesa-vulkan-drivers.i686 \
     openbox \
     procps-ng \
-    pulseaudio \
     sqlite \
     supervisor \
     tigervnc-server \
@@ -75,7 +80,8 @@ RUN dnf -y install \
     winetricks \
     xdotool \
     xorg-x11-server-Xorg \
-    xorg-x11-drv-dummy
+    xorg-x11-drv-dummy \
+    xorg-x11-drv-intel
 
 RUN dnf clean all --assumeyes
 
@@ -92,19 +98,20 @@ RUN useradd --shell /bin/bash --create-home --uid ${CONTAINER_UID} --gid ${CONTA
 # leaving a dialog box up.
 RUN sudo --user=${CONTAINER_USERNAME} winetricks --force --unattended nocrashdialog steam
 
-# Copy our xorg dummy config over.
+# Copy our xorg configs over.
 COPY ./xorg.conf.dummy.templ /etc/X11/xorg.conf.d/
+COPY ./xorg.conf.amd.templ /etc/X11/xorg.conf.d/
+COPY ./xorg.conf.intel.templ /etc/X11/xorg.conf.d/
 
-# Replace the desktop resolution, bit depth, and gpu card bus id in the xorg dummy conf
+# Replace the desktop resolution and bit depth in the xorg dummy conf
 RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" < "/etc/X11/xorg.conf.d/xorg.conf.dummy.templ" > "/etc/X11/xorg.conf.d/xorg.conf.dummy")
 RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.dummy.templ
 
-# Copy our xorg card config over.
-#COPY ./xorg.conf.card.templ /etc/X11/xorg.conf.d/
-
-# Replace the desktop resolution, bit depth, and gpu card bus id in the xorg card conf
-#RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) GPU_BUSID=${GPU_BUSID} && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID}|g" < "/etc/X11/xorg.conf.d/xorg.conf.card.templ" > "/etc/X11/xorg.conf.d/xorg.conf.card")
-#RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.card.templ
+# Replace the desktop resolution, bit depth, and gpu card bus id in the xorg gpu configs
+RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) GPU_BUSID=${GPU_BUSID} && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID}|g" < "/etc/X11/xorg.conf.d/xorg.conf.intel.templ" > "/etc/X11/xorg.conf.d/xorg.conf.intel")
+RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.intel.templ
+RUN (export DESKTOP_RESOLUTION=${DESKTOP_RESOLUTION} WINDOWRES=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 1-2) BIT_DEPTH=$(echo ${DESKTOP_RESOLUTION} | cut --delimiter "x" --fields 3) GPU_BUSID=${GPU_BUSID} && sed --expression="s|@DESKTOP_RESOLUTION@|${WINDOWRES}|g" --expression="s|@BIT_DEPTH@|${BIT_DEPTH}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID}|g" < "/etc/X11/xorg.conf.d/xorg.conf.amd.templ" > "/etc/X11/xorg.conf.d/xorg.conf.amd")
+RUN rm --force /etc/X11/xorg.conf.d/xorg.conf.amd.templ
 
 # Run steam full install and update
 RUN /usr/bin/Xorg -dpms -novtswitch -nolisten tcp -noreset -ac +extension RANDR +extension RENDER +extension GLX +extension XVideo +extension DOUBLE-BUFFER +extension SECURITY +extension DAMAGE +extension X-Resource +extension XINERAMA -xinerama +extension COMPOSITE -logfile /var/log/xorg.log -config /etc/X11/xorg.conf.d/xorg.conf.dummy vt7 ${DISPLAY} & \
@@ -184,6 +191,9 @@ RUN chmod +x /usr/local/bin/run_civ.bash
 
 # Create civ data root
 RUN sudo --user=${CONTAINER_USERNAME} mkdir -p "${CIV_DATA_ROOT}"
+
+# Setup dbus env
+RUN mkdir -p /run/dbus
 
 # Start the supervisor service to manage processes
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -8,7 +8,8 @@ shopt -s inherit_errexit
 sleep 30
 
 # Deploy steam client dlls
-STEAM_DLLS_ARRAY=("${STEAM_DLLS}")
+# Must not be surrounded by quotes
+STEAM_DLLS_ARRAY=(${STEAM_DLLS})
 for dll in "${STEAM_DLLS_ARRAY[@]}"; do
     \cp --force --preserve "/home/${CONTAINER_USERNAME}/.wine/drive_c/Program Files (x86)/Steam/${dll}" /home/"${CONTAINER_USERNAME}"/civ5game
 done
@@ -22,10 +23,15 @@ sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/G
 # Run the autostart script in the background
 /usr/local/bin/attempt_autostart.bash &
 
+DXVK_FILTER_VARIABLE=""
+if [ "${GPU_VENDOR}" = "dummy" ]; then
+    DXVK_FILTER_VARIABLE="llvmpipe"
+fi
+
 # Run civ5 in WINE
 # Disable errexit to fire the server_down_notifier.bash script if civ5 crashes
 set +o errexit
-sudo --user="${CONTAINER_USERNAME}" --preserve-env bash -c 'cd /home/"${CONTAINER_USERNAME}"/civ5game && WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH=/home/"${CONTAINER_USERNAME}"/proton/GE-Proton umu-run /home/"${CONTAINER_USERNAME}"/civ5game/CivilizationV_Server.exe'
+sudo --user="${CONTAINER_USERNAME}" --preserve-env bash -c 'cd /home/"${CONTAINER_USERNAME}"/civ5game && DXVK_FILTER_DEVICE_NAME="${DXVK_FILTER_VARIABLE}" PROTON_USE_XALIA=0 WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient,winepulse.drv,winealsa.drv=d;" PROTONPATH=/home/"${CONTAINER_USERNAME}"/proton/GE-Proton dbus-run-session umu-run /home/"${CONTAINER_USERNAME}"/civ5game/CivilizationV_Server.exe'
 set -o errexit
 
 # If civ fails (the command before has terminated),

@@ -13,23 +13,29 @@ DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
 DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
 NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
 SQLITE_DB="GameLaunch-1.db"
-# "800 670"   - Click on the "Click to Continue" button
-# "725 865"   - Click on the "Load Game" button
-# "1215 240"  - Click on the "autosaves" checkbox
-# "1000 315"  - Click on the latest autosave
-# "1105 750"  - Click on the "Load Game" button
-# "925 250"   - Click on the observer ready checkbox
-# "1115 860"  - Click on the "Launch Game" button
-MOUSE_MOVE_ARRAY=("800 670" "725 865" "1215 240" "1000 315" "1105 750" "925 250" "1115 860")
+# Coordinate#1 - Click on the "Click to Continue" button
+# Coordinate#2 - Click on the "Load Game" button
+# Coordinate#3 - Click on the "autosaves" checkbox
+# Coordinate#4 - Click on the latest autosave
+# Coordinate#5 - Click on the "Load Game" button
+# Coordinate#6 - Click on the observer ready checkbox
+# Coordinate#7  - Click on the "Launch Game" button
+MOUSE_MOVE_ARRAY_1600x900=("800 670" "725 865" "1215 240" "1000 315" "1105 750" "925 250" "1115 860")
+MOUSE_MOVE_ARRAY_1920x1080=("955 760" "880 1045" "1375 330" "1160 400" "1265 840" "1085 300" "1270 1040")
 
 
 function perform_mouse_commands {
     # Wait for civ5 to load
     sleep 120
 
+    # Get the array dynamically
+    windowres=$(echo "${DESKTOP_RESOLUTION}" | cut --delimiter "x" --fields 1-2)
+    mouse_move_array_name="MOUSE_MOVE_ARRAY_${windowres}"
+    mouse_move_array=($(eval echo "\${${mouse_move_array_name}[*]}"))
+
     window_id=$(xdotool search --onlyvisible --name "Sid*")
 
-    for mouse_coordinates in "${MOUSE_MOVE_ARRAY[@]}"; do
+    for mouse_coordinates in "${mouse_move_array[@]}"; do
         xdotool windowfocus --sync "${window_id}"
         xdotool mousemove "${mouse_coordinates}"
         xdotool click 1
@@ -61,6 +67,12 @@ function send_notification {
 }
 
 
+function apply_cpulimit {
+    pidofciv=$(ps uax | grep 'X:\\civ5game\\CivilizationV_Server.exe' | xargs | cut --delimiter ' ' --fields 2)
+    cpulimit --limit="${CPU_LIMIT}" --pid="${pidofciv}" --include-children &
+}
+
+
 function main {
     civ5autosaves=$(find "${CIV_DATA_ROOT}/Saves/multi/auto/" -maxdepth 1 -name "*.Civ5Save" -type f)
 
@@ -80,6 +92,8 @@ function main {
     fi
 
     send_notification
+
+    apply_cpulimit
 }
 
 

@@ -1,11 +1,11 @@
 civ5_docker_server
 ==================
 
-Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on a headless, GPU-less Linux machine.
+Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on a headless Linux machine.
 
 ## Major Fork Changes
 
-1. This fork runs off of a fedora container.
+1. This fork runs on a fedora container.
 2. All AWS-specific statements have been removed in favor of optional nfty (see https://docs.ntfy.sh/) and/or Discord notifications (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) that are fired off when a player disconnects and on a weekly basis.  The latter uses a different database based on players that have clicked "Next Turn" ergo it is more accurate.  However, because it's trivial to spam notifications this way, it is only triggered weekly on the backend.
 3. x11vnc has been removed in favor of x0vncserver because remotely connecting to the former in the fedora container was not working for me.
 4. WINE/Proton are "sandboxing" by default, so the "My Games" directory is now in the specific wine prefix as opposed to /root.
@@ -16,16 +16,18 @@ Scripts and Dockerfiles to install and run a dedicated Civilization 5 server on 
 9. Steam initial execution (to grab required DLLs) now works because CEF (chromium) features are now disabled.
 10. Added ability to define custom dnf repos.
 11. Added script utilizing xdotool to automatically reload the most recent autosave when the server is started.
+12. (Optional) Runs with a dedicated GPU to offload some processing from the CPU.
+13. (Optional) Ability to apply CPU limiting to the CivilizationV.exe.
 
 ## How does it work? (briefly)
 
-Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames (so no GPU needed).
+Civ 5 Server is a Windows-only GUI application that needs to render frames with ~~OpenGL~~ Direct3D (translated to OpenGL with wine).  This Docker setup creates a virtual X11 framebuffer for Civ to render to, provides a VNC server so you can remote in, and installs Mesa such that the CPU can render frames.  However, in this branch a GPU is used to offload the graphics processing.
 
-The attempt_autostart.bash script will, using xdotool and precise mouse coordinates based on the fixed 1600x900 desktop resolution, select the latest autosave and automatically start the server.  This takes place every time the server is started either when the container starts normally or when Civilization V crashes and restarts.  If there is no autosave present, then the server must be configured manually via the GUI via VNC before it will start.  Therefore, if you wish to start and configure a brand new game, be sure to delete the old autosaves in the `./civ5save/Saves/multi/auto` directory first.
+The attempt_autostart.bash script will, using xdotool and precise mouse coordinates based on the fixed 1920x1080 desktop resolution (though 1600x900 is also supported via manual Dockerfile change), select the latest autosave and automatically start the server.  This takes place every time the server is started either when the container starts normally or when Civilization V crashes and restarts.  If there is no autosave present, then the server must be configured manually via the GUI via VNC before it will start.  Therefore, if you wish to start and configure a brand new game, be sure to delete the old autosaves in the `./civ5save/Saves/multi/auto` directory first.
 
 ## When was this last tested
 
-This fork was last tested and working 2026/05/18 with fedora:44 running Proton-GE 10.34.
+This fork was last tested and working 2026/05/18 with fedora:44 running Proton-GE 10.34.  GPU support has _only_ been tested with AMD RX and Intel Iris GPUs (in particular the Radeon RX 550 and Intel Iris Plus Graphics 655).
 
 ## Known Issues / TODO:
 
@@ -39,25 +41,33 @@ None
 
 Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
 
-**3:** Build the container prerequisites with the following command: `./build.sh`
+**3:** (Optional) Get your GPU's PCI BusNumber:DeviceNumber.FunctionNumber from the output of lspci (e.g. 00:02.0).
 
-**3a:** (Optional) If you wish to notify users of turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Add the chosen notification topic name to `./server/ntfy_topic.txt` with no empty newlines below it.  If left blank it will not be used.
+**4:** Build the container prerequisites with the following command: `./build.sh`.
 
-**3b:** (Optional) If you wish to notify users of turn status via a Discord webhook, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for instructions on how this is done).  Add the resultant webhook ID and webhook Token values to the `./server/discord_webhook_id.txt` and `./server/discord_webhook_token.txt` files respectively with no empty newlines below them.  If left blank it will not be used.
+**4a:** (Optional) When prompted, enter in the GPU PCI BusID determined in the step above or leave blank to use the dummy driver (NO GPU-offload) [Default: ff:ff.ff, which uses the dummy driver].
 
-**3c:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. This can help speed up container image build times dramatically if a local dnf mirror is available.
+**4b:** (Optional) When prompted, enter in the CPU limit value if you would like to restrict CivilizationV from using ALL of your processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, enter in "400" [Default: maximum_percentage_of_all_cores, no limit in other words]
 
-**3d:** (Optional) If you wish to edit the time spent waiting for Steam to auto-update during container construction, update the `STEAM_INSTALL_SLEEP_TIMER` argument in `./server/docker-compose.yml`.  This might be necessary if you have a slow Internet connection or slow server in-general.  If Steam does not install successfully, this is the first place to look (default: 120s).
+**5:** For all other customizations, see the following:
 
-**3e:** (Optional) If you wish to set the default frame rate that the GUI runs at to a custom value, update the `DXVK_FRAME_RATE` variable in `./server/civ5.env` (default: 2, that is 2fps).
+**5a:** (Optional) If you wish to notify users of turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Add the chosen notification topic name to `./server/ntfy_topic.txt` with no empty newlines below it.  If left empty it will not be used.
 
-**3f:** (Optional) If you wish to set the version of ProtonGE to download and install, update the `GE_PROTON_VERSION` argument in `./server/docker-compose.yml` in the format `GE-Proton<version>` (Ex: GE-Proton10-29) (default: latest, the latest version of GE-Proton).
+**5b:** (Optional) If you wish to notify users of turn status via a Discord webhook, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for instructions on how this is done).  Add the resultant webhook ID and webhook Token values to the `./server/discord_webhook_id.txt` and `./server/discord_webhook_token.txt` files respectively with no empty newlines below them.  If left empty it will not be used.
 
-**4:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).  If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
+**5c:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. This can help speed up container image build times dramatically if a local dnf mirror is available.
 
-**5:** After the container starts running, you should be able to remote in with VNC. The container is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
+**5d:** (Optional) If you wish to edit the time spent waiting for Steam to auto-update during container construction, update the `STEAM_INSTALL_SLEEP_TIMER` argument in `./server/docker-compose.yml`.  This might be necessary if you have a slow Internet connection or slow server in-general.  If Steam does not install successfully, this is the first place to look (default: 120s).
 
-**6:** Setup the game through the VNC connection.  The mouse cursor WILL jump around because it is attempting to autostart (ignore it).  Mmake sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
+**5e:** (Optional) If you wish to set the default frame rate that the GUI runs at to a custom value, update the `DXVK_FRAME_RATE` variable in `./server/civ5.env` [Default: 2, that is 2fps].
+
+**5f:** (Optional) If you wish to set the version of ProtonGE to download and install, update the `GE_PROTON_VERSION` argument in `./server/docker-compose.yml` in the format `GE-Proton<version>` (Ex: GE-Proton10-29) (default: latest, the latest version of GE-Proton).
+
+**6:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).  If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
+
+**7:** After the container starts running, you should be able to remote in with VNC. The container is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
+
+**8:** Setup the game through the VNC connection.  The mouse cursor WILL jump around because it is attempting to autostart (ignore it).  Make sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
 
 ## systemd Integration
 
@@ -87,7 +97,7 @@ Replace the `WorkingDirectory=/home/game/containers/civ5_server_docker/server` l
 
 `27016 UDP` is the only port you need to allow incoming traffic through. If you're just using plain `iptables` or `nftables` as a firewall, bringing up the docker container should open that port for you.
 
-## Thanks
+## Credits
 
 A big thanks goes out to:
 
