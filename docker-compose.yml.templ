@@ -17,9 +17,11 @@ services:
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=120
     environment:
+      - CPU_LIMIT=@CPU_LIMIT@
       - DISCORD_WEBHOOK_ID_FILE=/run/secrets/discord_webhook_id
       - DISCORD_WEBHOOK_TOKEN_FILE=/run/secrets/discord_webhook_token
       - DXVK_FRAME_RATE=2
+      - GPU_VENDOR=@GPU_VENDOR@
       - NTFY_TOPIC_FILE=/run/secrets/ntfy_topic
       - TZ=@TIMEZONE@
       - VNC_PORT=5900
@@ -33,10 +35,7 @@ services:
       - ntfy_topic
       - discord_webhook_id
       - discord_webhook_token
-    privileged: true
-    devices:
-      - /dev/kfd
-      - /dev/dri
+    privileged: true@GPU_DEVICES@
 secrets:
   ntfy_topic:
     file: ntfy_topic.txt

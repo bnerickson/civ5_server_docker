@@ -67,20 +67,50 @@ else
 fi
 
 # Get the GPU BusID value
-echo "Enter the Xorg compatible GPU BusID value and press enter:"
+echo "Enter the GPU BusID value (from lspci) and press enter [Default: ff:ff.ff or a DUMMY busid for the dummy xorg config):"
+default_gpu_busid="ff:ff.ff"
 read GPU_BUSID
+busid_re="^[0-9a-fA-F]{1,2}:[0-9a-fA-F]{1,2}.[0-9a-fA-F]{1,2}$"
 # Verify GPU BusID value
-gpu_busid_check=$(echo ${GPU_BUSID} | grep --only-matching --extended "[1-2]?[1-9]?[0-9]:[1-2]?[1-9]?[0-9]:[1-2]?[1-9]?[0-9]" || true)
-if [ "${gpu_busid_check}" != "${GPU_BUSID}" ]; then
-    echo "Invalid GPU BusID input"
-    exit 1
+if ! [[ ${GPU_BUSID} =~ ${busid_re} ]]; then
+    echo "Non-conformant GPU BusID input, using default dummy value ${default_gpu_busid}"
+    GPU_BUSID="${default_gpu_busid}"
 fi
-GPU_BUSID="${GPU_BUSID}"
+gpu_bus_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 1)))
+gpu_device_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 2 | cut --delimiter "." --fields 1)))
+gpu_function_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter "." --fields 2)))
+GPU_BUSID_DECIMAL="${gpu_bus_num}:${gpu_device_num}:${gpu_function_num}"
+
+# GPU vendor check
+intel_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*intel" || true))
+amd_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*amd" || true))
+
+GPU_VENDOR="dummy"
+GPU_DEVICES=""
+if [ "${intel_gpu_check}" != "" ]; then
+    GPU_VENDOR="intel"
+    GPU_DEVICES="\n    devices:\n      - /dev/dri"
+fi
+
+if [ "${amd_gpu_check}" != "" ]; then
+    GPU_VENDOR="amd"
+    GPU_DEVICES="\n    devices:\n      - /dev/kfd\n      - /dev/dri"
+fi
+
+# Get the CPU limit value
+default_cpu_limit=$(($(nproc --all)*100))
+echo "Enter your custom CPU limit as a whole number if desired [Default: ${default_cpu_limit} or NO limit]:"
+number_re='^[0-9]+$'
+read CPU_LIMIT
+if ! [[ ${CPU_LIMIT} =~ ${number_re} ]]; then
+    echo "Non-integer cpu limit input, using default value ${default_cpu_limit}"
+    CPU_LIMIT="${default_cpu_limit}"
+fi
 
 # Create default docker compose file
 if [ ! -f "${DIR}/server/docker-compose.yml" ]; then
     echo "Creating default yml file ${DIR}/server/docker-compose.yml"
-    (sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID}|g" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
+    (sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
 else
     echo "Docker compose yml file ${DIR}/server/docker-compose.yml already exists, continuing without modification"
 fi
