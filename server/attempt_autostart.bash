@@ -20,9 +20,8 @@ SQLITE_DB="GameLaunch-1.db"
 # Coordinate#5 - Click on the "Load Game" button
 # Coordinate#6 - Click on the observer ready checkbox
 # Coordinate#7  - Click on the "Launch Game" button
-MOUSE_MOVE_ARRAY_1600x900=("800 670" "725 865" "1215 240" "1000 315" "1105 750" "925 250" "1115 860")
-MOUSE_MOVE_ARRAY_1920x1080=("955 760" "880 1045" "1375 330" "1160 400" "1265 840" "1085 300" "1270 1040")
-
+MOUSE_MOVE_ARRAY_1600x900=("800_670" "725_865" "1215_240" "1000_315" "1105_750" "925_250" "1115_860")
+MOUSE_MOVE_ARRAY_1920x1080=("955_760" "880_1045" "1375_330" "1160_400" "1265_840" "1085_300" "1270_1040")
 
 function perform_mouse_commands {
     # Wait for civ5 to load
@@ -36,8 +35,10 @@ function perform_mouse_commands {
     window_id=$(xdotool search --onlyvisible --name "Sid*")
 
     for mouse_coordinates in "${mouse_move_array[@]}"; do
+        x_coordinate=$(echo "${mouse_coordinates}" | cut --delimiter "_" --fields 1)
+        y_coordinate=$(echo "${mouse_coordinates}" | cut --delimiter "_" --fields 2)
         xdotool windowfocus --sync "${window_id}"
-        xdotool mousemove "${mouse_coordinates}"
+        xdotool mousemove "${x_coordinate}" "${y_coordinate}"
         xdotool click 1
         sleep 10
     done
