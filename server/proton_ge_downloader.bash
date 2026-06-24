@@ -9,7 +9,7 @@ shopt -s inherit_errexit
 GE_PROTON_VERSION="${1}"
 RELEASES=$(curl -s "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases?per_page=1")
 LATEST_RELEASE=$(echo "${RELEASES}" | jq '.[0]')
-TARBALL_ASSET=$(echo "${LATEST_RELEASE}" | jq '.assets[] | select(.name | endswith("tar.gz"))')
+TARBALL_ASSET=$(echo "${LATEST_RELEASE}" | jq '.assets[] | select(.name | endswith("tar.gz")) | select(.name | endswith("aarch64.tar.gz") | not)')
 if [ "${GE_PROTON_VERSION}" = "latest" ]; then
     DOWNLOAD_URL=$(echo "${TARBALL_ASSET}" | jq -r '.browser_download_url')
     FILENAME=$(echo "${TARBALL_ASSET}" | jq -r '.name')
