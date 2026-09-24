@@ -21,6 +21,7 @@ GPU_BUSID=${GPU_BUSID:-"ff:ff.ff"}
 CPU_LIMIT=${CPU_LIMIT:-"100"}
 VNC_PORT=${VNC_PORT:-"5900"}
 CIV5_FWD_PORT=${CIV5_FWD_PORT:-"27016"}
+DISPLAY=${DISPLAY:-":99"}
 STEAM_INSTALL_SLEEP_TIMER=${STEAM_INSTALL_SLEEP_TIMER:-"120"}
 DXVK_FRAME_RATE=${DXVK_FRAME_RATE:-"2"}
 GE_PROTON_VERSION=${GE_PROTON_VERSION:-"latest"}
@@ -82,15 +83,18 @@ GPU_BUSID_DECIMAL="${gpu_bus_num}:${gpu_device_num}:${gpu_function_num}"
 intel_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*intel" || true))
 amd_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*amd" || true))
 GPU_VENDOR="dummy"
+DXVK_FILTER_VARIABLE="llvmpipe"
 GPU_DEVICES=""
 if [ "${intel_gpu_check}" != "" ]; then
+    DXVK_FILTER_VARIABLE=""
     GPU_VENDOR="intel"
     GPU_DEVICES="\n    devices:\n      - /dev/dri"
 fi
 if [ "${amd_gpu_check}" != "" ]; then
+    DXVK_FILTER_VARIABLE=""
     GPU_VENDOR="amd"
     GPU_DEVICES="\n    devices:\n      - /dev/kfd\n      - /dev/dri"
 fi
 
 # Create docker compose file
-(sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" --expression="s|@STEAM_INSTALL_SLEEP_TIMER@|${STEAM_INSTALL_SLEEP_TIMER}|g" --expression="s|@DXVK_FRAME_RATE@|${DXVK_FRAME_RATE}|g" --expression="s|@GE_PROTON_VERSION@|${GE_PROTON_VERSION}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
+(sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" --expression="s|@STEAM_INSTALL_SLEEP_TIMER@|${STEAM_INSTALL_SLEEP_TIMER}|g" --expression="s|@DXVK_FRAME_RATE@|${DXVK_FRAME_RATE}|g" --expression="s|@GE_PROTON_VERSION@|${GE_PROTON_VERSION}|g" --expression="s|@VNC_PORT@|${VNC_PORT}|g" --expression="s|@CIV5_FWD_PORT@|${CIV5_FWD_PORT}|g" --expression="s|@CONTAINER_NAME@|${CONTAINER_NAME}|g" --expression="s|@DISPLAY@|${DISPLAY}|g" --expression="s|@DXVK_FILTER_VARIABLE@|${DXVK_FILTER_VARIABLE}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"

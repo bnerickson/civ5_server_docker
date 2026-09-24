@@ -19,8 +19,10 @@ ARG STEAM_DLLS
 ARG STEAM_INSTALL_SLEEP_TIMER
 # This is hard-coded because the attempt_restart.bash
 # script relies on exact x,y coordinates to start the
-# server.
-ARG DESKTOP_RESOLUTION=1920x1080x16
+# server
+# 24-bits is REQUIRED for Civ 5 to display when using
+# software rendering (llvmpipe)
+ARG DESKTOP_RESOLUTION=1920x1080x24
 
 # Set environment variables that are originally
 # args used in the image build

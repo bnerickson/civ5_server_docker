@@ -11,11 +11,12 @@ services:
         - CONTAINER_GID=@CONTAINER_GID@
         - CONTAINER_UID=@CONTAINER_UID@
         - CONTAINER_USERNAME=@CONTAINER_USERNAME@
-        - DISPLAY=:99
+        - DISPLAY=@DISPLAY@
         - GE_PROTON_VERSION=@GE_PROTON_VERSION@
         - GPU_BUSID=@GPU_BUSID@
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=@STEAM_INSTALL_SLEEP_TIMER@
+        - DXVK_FILTER_VARIABLE=@DXVK_FILTER_VARIABLE@
     environment:
       - CPU_LIMIT=@CPU_LIMIT@
       - DISCORD_WEBHOOK_ID_FILE=/run/secrets/discord_webhook_id
@@ -24,7 +25,7 @@ services:
       - GPU_VENDOR=@GPU_VENDOR@
       - NTFY_TOPIC_FILE=/run/secrets/ntfy_topic
       - TZ=@TIMEZONE@
-      - VNC_PORT=5900
+      - VNC_PORT=@VNC_PORT@
     volumes:
       - "@CIVDIR@/civ5game:/home/@CONTAINER_USERNAME@/civ5game"
       - "@CIVDIR@/civ5save:/home/@CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/@CONTAINER_USERNAME@/Documents/My Games/Sid Meier's Civilization 5"

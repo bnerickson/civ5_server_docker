@@ -26,14 +26,19 @@
 #CPU_LIMIT=100
 
 # Custom VNC port
-# This can be set to a custom value to allow the simultaneous
-# containers to be executed on the same system
+# This can be set to a custom value to allow simultaneous containers to be executed on the same
+# system
 #VNC_PORT=5900
 
 # UDP port to forward to udp/27016 in the container
-# This can be set to a custom value to allow the simultaneous containers to be executed on the same
-# system which required source port forwarding on the client or client's router
+# This can be set to a custom value to allow simultaneous containers to be executed on the same
+# system requiring  source port forwarding on the client's host or router
 #CIV5_FWD_PORT=27016
+
+# X11 Display
+# This can be set to a custom value to allow simultaneous containers to be executed on the same
+# system
+#DISPLAY=:99
 
 # Time in seconds to wait for Steam to auto-update during container image construction
 #STEAM_INSTALL_SLEEP_TIMER=120

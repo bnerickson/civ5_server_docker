@@ -23,11 +23,6 @@ sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/G
 # Run the autostart script in the background
 /usr/local/bin/attempt_autostart.bash &
 
-DXVK_FILTER_VARIABLE=""
-if [ "${GPU_VENDOR}" = "dummy" ]; then
-    DXVK_FILTER_VARIABLE="llvmpipe"
-fi
-
 # Run civ5 in WINE
 # Disable errexit to fire the server_down_notifier.bash script if civ5 crashes
 set +o errexit
