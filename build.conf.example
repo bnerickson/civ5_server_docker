@@ -1,14 +1,14 @@
-# Sets the image, container, service, network
-# and network name suffix in docker-compose.yml
-#CONTAINER_NAME=civ5
-
-# Must be a non-root user on the system,
+# (REQUIRED) Must be a non-root user on the system,
 # umu-launcher does not work with the root user
 #CONTAINER_USERNAME=
 
-# Must be a non-root group on the system,
+# (REQUIRED) Must be a non-root group on the system,
 # umu-launcher does not work with the root group
 #CONTAINER_GROUP=
+
+# Sets the image, container, service, network
+# and network name suffix in docker-compose.yml
+#CONTAINER_NAME=civ5
 
 # Timezone is used to control when notifications
 # are sent
