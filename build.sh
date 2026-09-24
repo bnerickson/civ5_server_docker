@@ -21,21 +21,24 @@ GPU_BUSID=${GPU_BUSID:-"ff:ff.ff"}
 CPU_LIMIT=${CPU_LIMIT:-"100"}
 VNC_PORT=${VNC_PORT:-"5900"}
 CIV5_FWD_PORT=${CIV5_FWD_PORT:-"27016"}
+STEAM_INSTALL_SLEEP_TIMER=${STEAM_INSTALL_SLEEP_TIMER:-"120"}
+DXVK_FRAME_RATE=${DXVK_FRAME_RATE:-"2"}
+GE_PROTON_VERSION=${GE_PROTON_VERSION:-"latest"}
 NTFY_TOPIC=${NTFY_TOPIC:-""}
 DISCORD_WEBHOOK_ID=${DISCORD_WEBHOOK_ID:-""}
 DISCORD_WEBHOOK_TOKEN=${DISCORD_WEBHOOK_TOKEN:-""}
 
 # Verify container username and group are valid
+CONTAINER_UID=$(id --user "${CONTAINER_USERNAME}")
 if [ "${CONTAINER_USERNAME}" = "root" ] || [ "${CONTAINER_USERNAME}" = "" ]; then
     echo "Container must be run as a non-root user, umu-launcher only supports running as a non-root user, exiting"
     exit 1
 fi
-CONTAINER_UID=$(id --user "${CONTAINER_USERNAME}")
+CONTAINER_GID=$(getent group "${CONTAINER_GROUP}" | cut --delimiter ":" --fields 3)
 if [ "${CONTAINER_GROUP}" = "root" ] || [ "${CONTAINER_GROUP}" = "" ]; then
     echo "Container must be run as a non-root group, umu-launcher only supports running as a non-root group, exiting"
     exit 1
 fi
-CONTAINER_GID=$(getent group "${CONTAINER_GROUP}" | cut --delimiter ":" --fields 3)
 
 # Apply our custom lua patches
 PATCH_ALREADY_APPLIED="Reversed (or previously applied) patch detected!"
@@ -57,8 +60,11 @@ done
 
 # Update the ntfy and discord files
 echo "${NTFY_TOPIC}" > "${DIR}/server/ntfy_topic.txt"
+sed --in-place '/^$/d' "${DIR}/server/ntfy_topic.txt"
 echo "${DISCORD_WEBHOOK_ID}" > "${DIR}/server/discord_webhook_id.txt"
+sed --in-place '/^$/d' "${DIR}/server/discord_webhook_id.txt"
 echo "${DISCORD_WEBHOOK_TOKEN}" > "${DIR}/server/discord_webhook_token.txt"
+sed --in-place '/^$/d' "${DIR}/server/discord_webhook_token.txt"
 chmod 600 "${DIR}/server/discord_webhook_token.txt"
 
 # Verify GPU BusID value and convert it to decimal
@@ -71,7 +77,6 @@ gpu_bus_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 1)))
 gpu_device_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 2 | cut --delimiter "." --fields 1)))
 gpu_function_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter "." --fields 2)))
 GPU_BUSID_DECIMAL="${gpu_bus_num}:${gpu_device_num}:${gpu_function_num}"
-
 
 # Get GPU_DEVICES value
 intel_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*intel" || true))
@@ -88,4 +93,4 @@ if [ "${amd_gpu_check}" != "" ]; then
 fi
 
 # Create docker compose file
-(sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
+(sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" --expression="s|@STEAM_INSTALL_SLEEP_TIMER@|${STEAM_INSTALL_SLEEP_TIMER}|g" --expression="s|@DXVK_FRAME_RATE@|${DXVK_FRAME_RATE}|g" --expression="s|@GE_PROTON_VERSION@|${GE_PROTON_VERSION}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"

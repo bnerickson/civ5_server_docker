@@ -12,15 +12,15 @@ services:
         - CONTAINER_UID=@CONTAINER_UID@
         - CONTAINER_USERNAME=@CONTAINER_USERNAME@
         - DISPLAY=:99
-        - GE_PROTON_VERSION=latest
+        - GE_PROTON_VERSION=@GE_PROTON_VERSION@
         - GPU_BUSID=@GPU_BUSID@
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
-        - STEAM_INSTALL_SLEEP_TIMER=120
+        - STEAM_INSTALL_SLEEP_TIMER=@STEAM_INSTALL_SLEEP_TIMER@
     environment:
       - CPU_LIMIT=@CPU_LIMIT@
       - DISCORD_WEBHOOK_ID_FILE=/run/secrets/discord_webhook_id
       - DISCORD_WEBHOOK_TOKEN_FILE=/run/secrets/discord_webhook_token
-      - DXVK_FRAME_RATE=2
+      - DXVK_FRAME_RATE=@DXVK_FRAME_RATE@
       - GPU_VENDOR=@GPU_VENDOR@
       - NTFY_TOPIC_FILE=/run/secrets/ntfy_topic
       - TZ=@TIMEZONE@

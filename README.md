@@ -35,51 +35,38 @@ None
 
 ## Instructions
 
-**1.** Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` as a non-root user with sudo priviledges and enter the cloned directory with `cd civ5_server_docker`
+1. Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` as a non-root user with sudo priviledges and enter the cloned directory with `cd civ5_server_docker`
+2. Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory using the provided install script: `./install_civ.sh <steam_username> <steam_password>`
 
-**2:** Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory using the provided install script as follows: `./install_civ.sh <steam_username> <steam_password>`
+**Note:** Sometimes `steam_cmd` can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
 
-Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
+3. Copy the example config file `build.conf.example` to `build.conf`: `cp build.conf.example build.conf`
+4. The following are **REQUIRED** configuration change updates you must make in `build.conf`:
+    * `CONTAINER_USERNAME` - Set this to the non-root user on your system that will run the container and game.
+    * `CONTAINER_GROUP` - Set this to the non-root group on your system that will run the container and game.
+5. The following are **OPTIONAL** customizations you may change in `build.conf`:
+    * `CONTAINER_NAME` - Set this to a custom value if you are running multiple containers simulatenously.  The container name, service name, network name, and image name all use this as the suffix in their names. **[Default: "civ5"]**
+    * `SCRIPT_TIMEZONE` - Set this to your system's timezone for weekly notifications. **[Default: "America/Los_Angeles"]**
+    * `GPU_BUSID` - To use a dedicated GPU, get your GPU's PCI BusNumber:DeviceNumber.FunctionNumber from the output of lspci (e.g. 00:02.0) and uncomment/update the GPU_BUSID variable in `build.conf` **[Default: "ff:ff.ff", this is a special value to use a dummy output]**
+    * `CPU_LIMIT` - Set this to restrict CivilizationV to a specified percentage of processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, change the value to "400" **[Default: "100", which uses a single-core's worth of processing power and is usually sufficient]**
+    * `VNC_PORT` - Set this to a custom value TCP port value if you are running multiple containers simulatenously **[Default: "5900", which is tcp/5900]**
+    * `CIV5_FWD_PORT` - Set this to a custom UDP port value if you are running multiple containers simulatenously; traffic destined to the server on this port will be redirected to udp/27016 in the container.  A client MUST connect to `CIV5_FWD_PORT` port via source NAT if the value is NOT udp/27016.   The mechanism by which a client performs source NAT is out-of-scope of this document (hint: On Windows a good place to start is portproxy ala `netsh interface portproxy add v4tov4 listenport=$listenPort listenaddress=$listenAddress connectaddress=$civIp connectport$connectPort`) **[Default: "27016", which is udp/27016]**
+    * `NTFY_TOPIC` - If you wish send notifications to users concerning the turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Then, set this variable to the notification topic name.  If left empty, no ntfy notifications will be sent. **[Default: ""]**
+    *  If you wish send notifications to users concerning the turn status via a Discord webhook, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for instructions on how this is done).  Then update **BOTH** of the following:
+        * `DISCORD_WEBHOOK_ID` - Set this to the Discord webhook ID for the webhook you created.  If left empty, no Discord notifications will be sent. **[Default: ""]**
+        * `DISCORD_WEBHOOK_TOKEN` - Set this to the Discord token for the webhook you created.  If left empty, no Discord notifications will be sent. **[Default: ""]**
+    * `STEAM_INSTALL_SLEEP_TIMER` - Set this to modify the time in seconds spent waiting for Steam to auto-update during the container image build.  This may be necessary if you have a slow Internet connection or slow server in-general.  If Steam does not install successfully, increase this value. **[Default: 120]**
+    * `DXVK_FRAME_RATE` - Set this to specify the frame rate that the CivilizationV GUI will render at. **[Default: 2, that is 2fps which is the lowest useable setting].**
+    * `GE_PROTON_VERSION` - Set this to a hard-coded version of ProtonGE to download and install.  The format of this option MUST be `GE-Proton<version>` (Ex: GE-Proton10-29) **[Default: latest, which is a special value that downloads the latest version of GE-Proton]**
+6. Other **OPTIONAL** customizations:
+    * (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. This can help speed up container image build times dramatically if a local dnf mirror is available.
+7. Build the container prerequisites with the following command: `./build.sh`.
+8. Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).
 
-**3:** Copy the `./build.conf.example` file to `./build.conf` as follows: `cp ./build.conf.example ./build.conf`
+**Note:** If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
 
-**4:** Update the CONTAINER_USERNAME and CONTAINER_GROUP variables in `./build.conf` to a non-root user/group on your system/
-
-**5:** For optional customizations in `./build.conf`, see the following:
-
-**5a:** (Optional) Set the CONTAINER_NAME to a custom value if you are running multiple containers simulatenously [Default: "civ5"]
-
-**5b:** (Optional) Set the SCRIPT_TIMEZONE to the timezone your system is in [Default: "America/Los_Angeles"]
-
-**5c:** (Optional) To use a dedicated GPU, get your GPU's PCI BusNumber:DeviceNumber.FunctionNumber from the output of lspci (e.g. 00:02.0) and uncomment/update the GPU_BUSID variable in `./build.conf` [Default: "ff:ff.ff" which uses a dummy output]
-
-**5d:** (Optional) Update the CPU_LIMIT variable to restrict CivilizationV to a specified percentage of processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, change the value to "400" [Default: "100", using a single-core]
-
-**5e:** (Optional) Set the VNC_PORT to a custom value if you are running multiple containers simulatenously [Default: "5900"]
-
-**5f:** (Optional) Set the CIV5_FWD_PORT to a custom value if you are running multiple containers simulatenously.  This is the udp port that a client machine must perform source NAT to connect to CivilizationV within the container.  For instance, setting this to 27017 will forward traffic destined to the server on udp/27017 to udp/27016 within the container.  The client must create a source NAT rule that forwards traffic to your server by translating udp/27016 to udp/27017.  The mechanism for doing this is out-of-scope of this document [Default: "27016"]
-
-**5g:** (Optional) If you wish to notify users of turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Update the NTFY_TOPIC value in `./build.conf` If left empty it will not be used [Default: ""]
-
-**5h:** (Optional) If you wish to notify users of turn status via a Discord webhook, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for instructions on how this is done).  Add the resultant webhook ID and webhook Token values to the `./build.conf` under the DISCORD_WEBHOOK_ID and DISCORD_WEBHOOK_TOKEN variables respectively.  If left empty it will not be used [Default: ""]
-
-**6:** Other optional customizations:
-
-**6a:** (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. This can help speed up container image build times dramatically if a local dnf mirror is available.
-
-**6b:** (Optional) If you wish to edit the time spent waiting for Steam to auto-update during container construction, update the `STEAM_INSTALL_SLEEP_TIMER` argument in `./server/docker-compose.yml`.  This might be necessary if you have a slow Internet connection or slow server in-general.  If Steam does not install successfully, this is the first place to look [Default: 120s]
-
-**6c:** (Optional) If you wish to set the default frame rate that the GUI runs at to a custom value, update the `DXVK_FRAME_RATE` variable in `./server/civ5.env` [Default: 2, that is 2fps].
-
-**6d:** (Optional) If you wish to set the version of ProtonGE to download and install, update the `GE_PROTON_VERSION` argument in `./server/docker-compose.yml` in the format `GE-Proton<version>` (Ex: GE-Proton10-29) [Default: latest, the latest version of GE-Proton]
-
-**7:** Build the container prerequisites with the following command: `./build.sh`.
-
-**8:** Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).  If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
-
-**9:** After the container starts running, you should be able to remote in with VNC. The container is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL 5900:127.0.0.1:5900 ${USERNAME}@${SERVER_IP}`).
-
-**10:** Setup the game through the VNC connection.  The mouse cursor WILL jump around because it is attempting to autostart (ignore it).  Make sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
+9. After the container starts running, you should be able to remote in with VNC. The container is setup to only allow connections from localhost, so you'll want to open up an SSH tunnel if you are remoting in from a different machine (Ex: `ssh -NL ${VNC_PORT}:127.0.0.1:${VNC_PORT} ${USERNAME}@${SERVER_IP}`).
+10. Setup the game through the VNC connection.  The mouse cursor WILL jump around because it is attempting to autostart (ignore it).  Make sure port forwarding is setup (see Port Forwarding section below) and users should be able to connect to your game.
 
 ## systemd Integration
 

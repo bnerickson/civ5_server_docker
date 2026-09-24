@@ -1,27 +1,28 @@
-# (REQUIRED) Must be a non-root user on the system,
-# umu-launcher does not work with the root user
+## REQUIRED Configuration Changes
+
+# Must be a non-root user on the system, umu-launcher does not work with the root user
 #CONTAINER_USERNAME=
 
-# (REQUIRED) Must be a non-root group on the system,
-# umu-launcher does not work with the root group
+# Must be a non-root group on the system, umu-launcher does not work with the root group
 #CONTAINER_GROUP=
 
-# Sets the image, container, service, network
-# and network name suffix in docker-compose.yml
+## OPTIONAL Configuration Changes
+
+# Sets the image, container, service, and network name suffix in docker-compose.yml
 #CONTAINER_NAME=civ5
 
-# Timezone is used to control when notifications
-# are sent
+# Timezone is used to control when notifications are sent
 #SCRIPT_TIMEZONE=America/Los_Angeles
 
 # GPU BusID value (from lspci)
-# Default is ff:ff.ff which is a DUMMY busid so
-# a dedicated GPU will NOT be used
+# Default is ff:ff.ff which is a DUMMY busid and a dedicated GPU will NOT be used
 #GPU_BUSID=ff:ff.ff
 
-# Indicated in percentage of total core percentage
-# "100" means "100%" of a SINGLE-core's worth of utilization spread across all available cores
-# "200" means "100%" of TWO-core's worth of utilization spread across all available cores
+# Specified in percentage of total core percentage
+# "100" is equivalent to "100%" of a SINGLE-core's worth of utilization spread across all
+# available cores
+# "200" is equivalent to "100%" of TWO-core's worth of utilization spread across all available
+# cores
 #CPU_LIMIT=100
 
 # Custom VNC port
@@ -30,16 +31,25 @@
 #VNC_PORT=5900
 
 # UDP port to forward to udp/27016 in the container
-# This can be set to a custom value to allow the simultaneous
-# containers to be executed on the same system which required
-# source port forwarding on the client or client's router
+# This can be set to a custom value to allow the simultaneous containers to be executed on the same
+# system which required source port forwarding on the client or client's router
 #CIV5_FWD_PORT=27016
 
-# Optional NTFY topic for notifications
+# Time in seconds to wait for Steam to auto-update during container image construction
+#STEAM_INSTALL_SLEEP_TIMER=120
+
+# FPS that the CivilizationV GUI is limited to
+#DXVK_FRAME_RATE=2
+
+# Hard-coded version of ProtonGE to download and install which must be encoded in the format
+# "GE-Proton<version>" (Ex: GE-Proton10-29), the special value "latest" always download the latest
+# ProtonGE version
+#GE_PROTON_VERSION=latest
+
+# NTFY topic for notifications
 #NTFY_TOPIC=
 
-# Optional Discord webhook parameters for notifications
-# Both DISCORD_WEBHOOK_ID and DISCORD_WEBHOOK_TOKEN must
-# be set
+# Discord webhook parameters for notifications Both DISCORD_WEBHOOK_ID and DISCORD_WEBHOOK_TOKEN
+# must be set
 #DISCORD_WEBHOOK_ID=
 #DISCORD_WEBHOOK_TOKEN=
