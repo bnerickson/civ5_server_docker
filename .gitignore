@@ -11,6 +11,7 @@ discord_webhook_token.txt
 ntfy_topic.txt
 docker-compose.yml
 civ5.env
+build.conf
 
 # During Civ 5 installation, a `temp` dir is created
 temp

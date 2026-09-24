@@ -5,30 +5,43 @@ set -o errexit -o nounset -o pipefail
 # Force subshells (function calls) to inherit errexit.
 shopt -s inherit_errexit
 
-# Must be run as a non-root user
-CONTAINER_USERNAME=$(whoami)
-CONTAINER_UID=$(id --user)
-CONTAINER_GID=$(id --group)
-if [ ${CONTAINER_UID} -eq 0 ]; then
-    echo "Container must be run as a non-root user.  umu-launcher only supports running as a non-root user."
+# Fetch the dir where this bash script is
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+# Source the config file
+CONFIG_FILE="${DIR}/build.conf"
+source "${CONFIG_FILE}"
+
+# Set default values if unset in config file
+CONTAINER_USERNAME=${CONTAINER_USERNAME:-""}
+CONTAINER_GROUP=${CONTAINER_GROUP:-""}
+CONTAINER_NAME=${CONTAINER_NAME:-"civ5"}
+SCRIPT_TIMEZONE=${SCRIPT_TIMEZONE:-"America/Los_Angeles"}
+GPU_BUSID=${GPU_BUSID:-"ff:ff.ff"}
+CPU_LIMIT=${CPU_LIMIT:-"100"}
+VNC_PORT=${VNC_PORT:-"5900"}
+CIV5_FWD_PORT=${CIV5_FWD_PORT:-"27016"}
+NTFY_TOPIC=${NTFY_TOPIC:-""}
+DISCORD_WEBHOOK_ID=${DISCORD_WEBHOOK_ID:-""}
+DISCORD_WEBHOOK_TOKEN=${DISCORD_WEBHOOK_TOKEN:-""}
+
+# Verify container username and group are valid
+if [ "${CONTAINER_USERNAME}" = "root" ] || [ "${CONTAINER_USERNAME}" = "" ]; then
+    echo "Container must be run as a non-root user, umu-launcher only supports running as a non-root user, exiting"
     exit 1
 fi
-
-# Get the timezone for the civ5.env
-echo "Getting the system timezone"
-SCRIPT_TIMEZONE=$(timedatectl show --property=Timezone --value)
-
-# Fetch the dir where this bash script is
-echo "Getting the current working dir"
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+CONTAINER_UID=$(id --user "${CONTAINER_USERNAME}")
+if [ "${CONTAINER_GROUP}" = "root" ] || [ "${CONTAINER_GROUP}" = "" ]; then
+    echo "Container must be run as a non-root group, umu-launcher only supports running as a non-root group, exiting"
+    exit 1
+fi
+CONTAINER_GID=$(getent group "${CONTAINER_GROUP}" | cut --delimiter ":" --fields 3)
 
 # Apply our custom lua patches
 PATCH_ALREADY_APPLIED="Reversed (or previously applied) patch detected!"
 declare -A PATCHES=( [MPList.lua.patch]="Assets/UI/InGame/WorldView/MPList.lua" [StagingRoom.lua.patch]="Assets/UI/FrontEnd/Multiplayer/StagingRoom.lua" )
-
 for patch in "${!PATCHES[@]}"; do
     set +e
-    echo "Attempting to apply the ${patch} patch to ${DIR}/civ5game/${PATCHES[${patch}]}"
     PATCH_RESULTS=$(patch --forward --reject-file=- "${DIR}/civ5game/${PATCHES[${patch}]}" < "${DIR}/server/${patch}" 2>&1)
     if [ ${?} -eq 1 ]; then
         set -e
@@ -37,80 +50,42 @@ for patch in "${!PATCHES[@]}"; do
             echo "${PATCH_RESULTS_SINGLE_LINE}"
             exit 1
         fi
-        echo "Patch ${DIR}/server/${patch} already applied to ${DIR}/civ5game/${PATCHES[${patch}]}, continuing without modification"
     else
         set -e
     fi
 done
 
-# Create the secrets files that are empty by default
-if [ ! -f "${DIR}/server/ntfy_topic.txt" ]; then
-    echo "Creating empty credential file ${DIR}/server/ntfy_topic.txt"
-    touch "${DIR}/server/ntfy_topic.txt"
-    chmod 600 "${DIR}/server/ntfy_topic.txt"
-else
-    echo "Credential file ${DIR}/server/ntfy_topic.txt already exists, continuing without modification"
-fi
-if [ ! -f "${DIR}/server/discord_webhook_id.txt" ]; then
-    echo "Creating empty credential file ${DIR}/server/discord_webhook_id.txt"
-    touch "${DIR}/server/discord_webhook_id.txt"
-    chmod 600 "${DIR}/server/discord_webhook_id.txt"
-else
-    echo "Credential file ${DIR}/server/discord_webhook_id.txt already exists, continuing without modification"
-fi
-if [ ! -f "${DIR}/server/discord_webhook_token.txt" ]; then
-    echo "Creating empty credential file ${DIR}/server/discord_webhook_token.txt"
-    touch "${DIR}/server/discord_webhook_token.txt"
-    chmod 600 "${DIR}/server/discord_webhook_token.txt"
-else
-    echo "Credential file ${DIR}/server/discord_webhook_token.txt already exists, continuing without modification"
-fi
+# Update the ntfy and discord files
+echo "${NTFY_TOPIC}" > "${DIR}/server/ntfy_topic.txt"
+echo "${DISCORD_WEBHOOK_ID}" > "${DIR}/server/discord_webhook_id.txt"
+echo "${DISCORD_WEBHOOK_TOKEN}" > "${DIR}/server/discord_webhook_token.txt"
+chmod 600 "${DIR}/server/discord_webhook_token.txt"
 
-# Get the GPU BusID value
-echo "Enter the GPU BusID value (from lspci) and press enter [Default: ff:ff.ff or a DUMMY busid for the dummy xorg config):"
-default_gpu_busid="ff:ff.ff"
-read GPU_BUSID
+# Verify GPU BusID value and convert it to decimal
 busid_re="^[0-9a-fA-F]{1,2}:[0-9a-fA-F]{1,2}.[0-9a-fA-F]{1,2}$"
-# Verify GPU BusID value
 if ! [[ ${GPU_BUSID} =~ ${busid_re} ]]; then
-    echo "Non-conformant GPU BusID input, using default dummy value ${default_gpu_busid}"
-    GPU_BUSID="${default_gpu_busid}"
+    echo "GPU_BUSID value ${GPU_BUSID} is invalid, exiting"
+    exit 1
 fi
 gpu_bus_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 1)))
 gpu_device_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 2 | cut --delimiter "." --fields 1)))
 gpu_function_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter "." --fields 2)))
 GPU_BUSID_DECIMAL="${gpu_bus_num}:${gpu_device_num}:${gpu_function_num}"
 
-# GPU vendor check
+
+# Get GPU_DEVICES value
 intel_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*intel" || true))
 amd_gpu_check=$(lspci | (grep --extended --ignore-case "${GPU_BUSID} .*amd" || true))
-
 GPU_VENDOR="dummy"
 GPU_DEVICES=""
 if [ "${intel_gpu_check}" != "" ]; then
     GPU_VENDOR="intel"
     GPU_DEVICES="\n    devices:\n      - /dev/dri"
 fi
-
 if [ "${amd_gpu_check}" != "" ]; then
     GPU_VENDOR="amd"
     GPU_DEVICES="\n    devices:\n      - /dev/kfd\n      - /dev/dri"
 fi
 
-# Get the CPU limit value
-default_cpu_limit=$(($(nproc --all)*100))
-echo "Enter your custom CPU limit as a whole number if desired [Default: ${default_cpu_limit} or NO limit]:"
-number_re='^[0-9]+$'
-read CPU_LIMIT
-if ! [[ ${CPU_LIMIT} =~ ${number_re} ]]; then
-    echo "Non-integer cpu limit input, using default value ${default_cpu_limit}"
-    CPU_LIMIT="${default_cpu_limit}"
-fi
-
-# Create default docker compose file
-if [ ! -f "${DIR}/server/docker-compose.yml" ]; then
-    echo "Creating default yml file ${DIR}/server/docker-compose.yml"
-    (sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"
-else
-    echo "Docker compose yml file ${DIR}/server/docker-compose.yml already exists, continuing without modification"
-fi
+# Create docker compose file
+(sed --expression="s|@CONTAINER_USERNAME@|${CONTAINER_USERNAME}|g" --expression="s|@CONTAINER_UID@|${CONTAINER_UID}|g" --expression="s|@CONTAINER_GID@|${CONTAINER_GID}|g" --expression="s|@CIVDIR@|${DIR}|g" --expression="s|@TIMEZONE@|${SCRIPT_TIMEZONE}|g" --expression="s|@GPU_BUSID@|${GPU_BUSID_DECIMAL}|g" --expression="s|@GPU_DEVICES@|${GPU_DEVICES}|g" --expression="s|@GPU_VENDOR@|${GPU_VENDOR}|g" --expression="s|@CPU_LIMIT@|${CPU_LIMIT}|g" < "${DIR}/docker-compose.yml.templ" < "${DIR}/docker-compose.yml.templ") > "${DIR}/server/docker-compose.yml"

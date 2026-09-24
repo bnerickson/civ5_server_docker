@@ -1,9 +1,9 @@
 services:
-  service_civ5:
+  service_@CONTAINER_NAME@:
     stdin_open: true
     tty: true
-    container_name: "container_civ5"
-    image: "image_civ5"
+    container_name: "container_@CONTAINER_NAME@"
+    image: "image_@CONTAINER_NAME@"
     build:
       context: "./"
       args:
@@ -29,8 +29,8 @@ services:
       - "@CIVDIR@/civ5game:/home/@CONTAINER_USERNAME@/civ5game"
       - "@CIVDIR@/civ5save:/home/@CONTAINER_USERNAME@/Games/umu/umu-default/drive_c/users/@CONTAINER_USERNAME@/Documents/My Games/Sid Meier's Civilization 5"
     ports:
-      - "127.0.0.1:5900:5900/tcp"
-      - "0.0.0.0:27016:27016/udp"
+      - "127.0.0.1:@VNC_PORT@:@VNC_PORT@/tcp"
+      - "0.0.0.0:@CIV5_FWD_PORT@:27016/udp"
     secrets:
       - ntfy_topic
       - discord_webhook_id
@@ -44,4 +44,4 @@ secrets:
   discord_webhook_token:
     file: discord_webhook_token.txt
 networks:
-  network_civ5: {}
+  network_@CONTAINER_NAME@: {}
