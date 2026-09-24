@@ -53,7 +53,7 @@ Note that sometimes steam_cmd can SEGFAULT for no apparent reason, but re-runnin
 
 **5c:** (Optional) To use a dedicated GPU, get your GPU's PCI BusNumber:DeviceNumber.FunctionNumber from the output of lspci (e.g. 00:02.0) and uncomment/update the GPU_BUSID variable in `./build.conf` [Default: "ff:ff.ff" which uses a dummy output]
 
-**5d:** (Optional) Update the CPU_LIMIT variable to restrict CivilizationV to a specified percentage of processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, change the value to "400" [Default: "100", usiung a single-core]
+**5d:** (Optional) Update the CPU_LIMIT variable to restrict CivilizationV to a specified percentage of processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, change the value to "400" [Default: "100", using a single-core]
 
 **5e:** (Optional) Set the VNC_PORT to a custom value if you are running multiple containers simulatenously [Default: "5900"]
 
