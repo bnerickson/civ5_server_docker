@@ -17,7 +17,7 @@ CONTAINER_USERNAME=${CONTAINER_USERNAME:-""}
 CONTAINER_GROUP=${CONTAINER_GROUP:-""}
 CONTAINER_NAME=${CONTAINER_NAME:-"civ5"}
 SCRIPT_TIMEZONE=${SCRIPT_TIMEZONE:-"America/Los_Angeles"}
-GPU_BUSID=${GPU_BUSID:-"ff:ff.ff"}
+GPU_BUSID=${GPU_BUSID:-"ff:ff.f"}
 CPU_LIMIT=${CPU_LIMIT:-"100"}
 VNC_PORT=${VNC_PORT:-"5900"}
 CIV5_FWD_PORT=${CIV5_FWD_PORT:-"27016"}
@@ -69,9 +69,9 @@ sed --in-place '/^$/d' "${DIR}/server/discord_webhook_token.txt"
 chmod 600 "${DIR}/server/discord_webhook_token.txt"
 
 # Verify GPU BusID value and convert it to decimal
-busid_re="^[0-9a-fA-F]{1,2}:[0-9a-fA-F]{1,2}\.[0-9a-fA-F]{1,2}$"
+busid_re="^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-9a-fA-F]{1}$"
 if ! [[ ${GPU_BUSID} =~ ${busid_re} ]]; then
-    echo "GPU_BUSID value ${GPU_BUSID} is invalid, exiting"
+    echo "GPU_BUSID value ${GPU_BUSID} is invalid and must be formatted as follows (where G-K represent the appropriate BusID values): GH:IJ.K"
     exit 1
 fi
 gpu_bus_num=$((16#$(echo "${GPU_BUSID}" | cut --delimiter ":" --fields 1)))
