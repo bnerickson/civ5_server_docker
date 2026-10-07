@@ -16,11 +16,11 @@ services:
         - GPU_BUSID=@GPU_BUSID@
         - STEAM_DLLS=steamclient.dll tier0_s.dll vstdlib_s.dll
         - STEAM_INSTALL_SLEEP_TIMER=@STEAM_INSTALL_SLEEP_TIMER@
-        - DXVK_FILTER_VARIABLE=@DXVK_FILTER_VARIABLE@
     environment:
       - CPU_LIMIT=@CPU_LIMIT@
       - DISCORD_WEBHOOK_ID_FILE=/run/secrets/discord_webhook_id
       - DISCORD_WEBHOOK_TOKEN_FILE=/run/secrets/discord_webhook_token
+      - DXVK_FILTER_VARIABLE=@DXVK_FILTER_VARIABLE@
       - DXVK_FRAME_RATE=@DXVK_FRAME_RATE@
       - GPU_VENDOR=@GPU_VENDOR@
       - NTFY_TOPIC_FILE=/run/secrets/ntfy_topic

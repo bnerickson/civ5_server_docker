@@ -16,7 +16,7 @@
 
 # GPU BusID value (from lspci)
 # Default is ff:ff.ff which is a DUMMY busid and a dedicated GPU will NOT be used
-#GPU_BUSID=ff:ff.ff
+#GPU_BUSID=ff:ff.f
 
 # Specified in percentage of total core percentage
 # "100" is equivalent to "100%" of a SINGLE-core's worth of utilization spread across all
