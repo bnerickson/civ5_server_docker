@@ -69,7 +69,7 @@ sed --in-place '/^$/d' "${DIR}/server/discord_webhook_token.txt"
 chmod 600 "${DIR}/server/discord_webhook_token.txt"
 
 # Verify GPU BusID value and convert it to decimal
-busid_re="^[0-9a-fA-F]{1,2}:[0-9a-fA-F]{1,2}.[0-9a-fA-F]{1,2}$"
+busid_re="^[0-9a-fA-F]{1,2}:[0-9a-fA-F]{1,2}\.[0-9a-fA-F]{1,2}$"
 if ! [[ ${GPU_BUSID} =~ ${busid_re} ]]; then
     echo "GPU_BUSID value ${GPU_BUSID} is invalid, exiting"
     exit 1
