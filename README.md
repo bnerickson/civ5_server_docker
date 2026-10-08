@@ -27,7 +27,7 @@ The attempt_autostart.bash script will, using xdotool and precise mouse coordina
 
 ## When was this last tested
 
-This fork was last tested and working 2026/05/18 with fedora:44 running Proton-GE 10.34.  GPU support has _only_ been tested with AMD RX and Intel Iris GPUs (in particular the Radeon RX 550 and Intel Iris Plus Graphics 655).
+This fork was last tested and working 2026/10/08 with fedora:44 running Proton-GE 11.7.  GPU support has _only_ been tested with AMD RX and Intel Iris GPUs (in particular the Radeon RX 550 and Intel Iris Plus Graphics 655).
 
 ## Known Issues / TODO:
 
