@@ -49,8 +49,8 @@ None
     * `SCRIPT_TIMEZONE` - Set this to your system's timezone for weekly notifications. **[Default: "America/Los_Angeles"]**
     * `GPU_BUSID` - To use a dedicated GPU, get your GPU's PCI BusNumber:DeviceNumber.FunctionNumber from the output of lspci (ex: 00:02.0) and uncomment/update the GPU_BUSID variable in `build.conf` **[Default: "ff:ff.f", this is a special value to use a dummy output]**
     * `CPU_LIMIT` - Set this to restrict CivilizationV to a specified percentage of processing.  This value is measured as a percentage of ALL cores on your system.  For instance, if you have 8-core processor and want to use a maximum of 4-cores of processing power, change the value to "400" **[Default: "100", which uses a single-core's worth of processing power and is usually sufficient]**
-    * `VNC_PORT` - Set this to a custom value TCP port value if you are running multiple containers simulatenously **[Default: "5900", which is tcp/5900]**
-    * `CIV5_FWD_PORT` - Set this to a custom UDP port value if you are running multiple containers simulatenously; traffic destined to the server on this port will be redirected to udp/27016 in the container.  A client MUST connect to `CIV5_FWD_PORT` port via source NAT if the value is NOT udp/27016.   The mechanism by which a client performs source NAT is out-of-scope of this document (hint: On Windows a good place to start is portproxy ala `netsh interface portproxy add v4tov4 listenport=$listenPort listenaddress=$listenAddress connectaddress=$civIp connectport$connectPort`) **[Default: "27016", which is udp/27016]**
+    * `VNC_PORT` - Set this to a custom TCP port value if you are running multiple containers simulatenously **[Default: "5900", which is tcp/5900]**
+    * `CIV5_FWD_PORT` - Set this to a custom UDP port value if you are running multiple containers simulatenously; traffic destined to the server on this port will be redirected to udp/27016 in the container.  A client MUST connect to `CIV5_FWD_PORT` port via source NAT if the value is NOT udp/27016.   The mechanism by which a client performs source NAT is out-of-scope of this document **[Default: "27016", which is udp/27016]**
     * `DISPLAY` - Set this to a custom X11 display value if you are running multiple containers simulatenously; the syntax must be `:<DISPLAY_NUMBER>` (Ex: :98) **[Default: ":99"]**
     * `NTFY_TOPIC` - If you wish send notifications to users concerning the turn status via nfty, setup a nfty notification topic (see https://docs.ntfy.sh/ for details on how this is done).  Then, set this variable to the notification topic name.  If left empty, no ntfy notifications will be sent. **[Default: ""]**
     *  If you wish send notifications to users concerning the turn status via a Discord webhook, setup a webook in the channel of your choice (see https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks for instructions on how this is done).  Then update **BOTH** of the following:
@@ -60,8 +60,8 @@ None
     * `DXVK_FRAME_RATE` - Set this to specify the frame rate that the CivilizationV GUI will render at. **[Default: 2, that is 2fps which is the lowest useable setting].**
     * `GE_PROTON_VERSION` - Set this to a hard-coded version of ProtonGE to download and install.  The format of this option MUST be `GE-Proton<version>` (Ex: GE-Proton10-29) **[Default: latest, which is a special value that downloads the latest version of GE-Proton]**
 6. Other **OPTIONAL** customizations:
-    * (Optional) If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. This can help speed up container image build times dramatically if a local dnf mirror is available.
-7. Build the container prerequisites with the following command: `./build.sh`.
+    * If you wish to use a custom `fedora.repo`, `fedora-cisco-openh264.repo`, or `fedora-updates.repo` file, create and/or paste them into the `server/` directory.  If the files do not exist then the Docker build process will use the public Fedora repositories. If a local dnf mirror is available, then this can help speed up container image build times dramatically.
+7. Build the container prerequisites with the following command: `./build.sh`.  If there are any errors in your `build.conf`, then the script will fail and you must correct the errors to continue.
 8. Build and launch the container with the command `docker compose -f ./server/docker-compose.yml up` (it should take 7-10 minutes to build).
 
 **Note:** If the build crashes when installing/running Steam via winetricks, rebuilding the container again by re-running the command is often enough to fix the issue.
@@ -93,9 +93,11 @@ WantedBy=multi-user.target
 
 Replace the `WorkingDirectory=/home/game/containers/civ5_server_docker/server` line in the service definition with the path to your `./server` directory, run the `systemctl daemon-reload` command, then run the `systemctl start docker.civ5.service` command to build/start the container.
 
+You can monitor the container build and execution status with `tail -f /var/log/messages`.
+
 ## Port Forwarding
 
-`27016 UDP` is the only port you need to allow incoming traffic through. If you're just using plain `iptables` or `nftables` as a firewall, bringing up the docker container should open that port for you.  If you are running multiple instances of the container, then the UDP port configured under CIV5_FWD_PORT must also be opened.
+`27016 UDP` is the only port you need to allow incoming traffic through on your router+firewall. However, if you have set `CIV5_FWD_PORT` to custom values for multiple additional containers, then you will need to allow those ports as well.  If you're just using plain `iptables` or `nftables` as a firewall, bringing up the docker container should open that port for you.
 
 ## Credits
 
