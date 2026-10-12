@@ -20,8 +20,7 @@ SQLITE_DB="GameLaunch-1.db"
 # Coordinate#5 - Click on the "Load Game" button
 # Coordinate#6 - Click on the observer ready checkbox
 # Coordinate#7  - Click on the "Launch Game" button
-MOUSE_MOVE_ARRAY_1600x900=("800_670" "725_865" "1215_240" "1000_315" "1105_750" "925_250" "1115_860")
-MOUSE_MOVE_ARRAY_1920x1080=("955_760" "880_1045" "1375_330" "1160_400" "1265_840" "1085_300" "1270_1040")
+MOUSE_MOVE_ARRAY_1920x1080=("955_760" "880_880" "1375_330" "1160_400" "1265_840" "1085_365" "1270_875")
 
 function perform_mouse_commands {
     # Wait for civ5 to load

@@ -7,6 +7,9 @@ shopt -s inherit_errexit
 
 sleep 30
 
+GAME_WINDOWRESX=1280
+GAME_WINDOWRESY=720
+
 # Deploy steam client dlls
 # Must not be surrounded by quotes
 STEAM_DLLS_ARRAY=(${STEAM_DLLS})
@@ -17,8 +20,8 @@ done
 # Verify civ5 resolution is set properly
 WINDOWRESX=$(echo "${DESKTOP_RESOLUTION}" | cut --delimiter "x" --fields 1)
 WINDOWRESY=$(echo "${DESKTOP_RESOLUTION}" | cut --delimiter "x" --fields 2)
-sed -i -- "s/WindowResX = .*/WindowResX = ${WINDOWRESX}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
-sed -i -- "s/WindowResY = .*/WindowResY = ${WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
+sed -i -- "s/WindowResX = .*/WindowResX = ${GAME_WINDOWRESX}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
+sed -i -- "s/WindowResY = .*/WindowResY = ${GAME_WINDOWRESY}\r/g" "${CIV_DATA_ROOT}/GraphicsSettingsDX9.ini"
 
 # Run the autostart script in the background
 /usr/local/bin/attempt_autostart.bash &
