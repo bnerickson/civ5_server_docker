@@ -23,6 +23,8 @@
 # available cores
 # "200" is equivalent to "100%" of TWO-core's worth of utilization spread across all available
 # cores
+# DO NOT set this value too low; setting it to 50, for instance, can result in an unresponsive
+# Civ5 GUI after an indeterminate amount of time
 #CPU_LIMIT=100
 
 # Custom VNC port
