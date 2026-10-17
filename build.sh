@@ -29,6 +29,15 @@ NTFY_TOPIC=${NTFY_TOPIC:-""}
 DISCORD_WEBHOOK_ID=${DISCORD_WEBHOOK_ID:-""}
 DISCORD_WEBHOOK_TOKEN=${DISCORD_WEBHOOK_TOKEN:-""}
 
+# Check if container is running and exit if so
+# Updating Civ5 data files while Civ5 is running
+# WILL cause Civ5 to crash
+docker_running_check=$(docker ps --filter name="container_${CONTAINER_NAME}" --quiet)
+if [ "${docker_running_check}" != "" ]; then
+    echo "Container container_${CONTAINER_NAME} is currently running (${docker_running_check}), exiting"
+    exit 1
+fi
+
 # Verify container username and group are valid
 CONTAINER_UID=$(id --user "${CONTAINER_USERNAME}")
 if [ "${CONTAINER_USERNAME}" = "root" ] || [ "${CONTAINER_USERNAME}" = "" ]; then
