@@ -35,7 +35,7 @@ None
 
 ## Instructions
 
-1. Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` as a non-root user with sudo priviledges and enter the cloned directory with `cd civ5_server_docker`
+1. Clone this repository on your Linux server `git clone https://github.com/bnerickson/civ5_server_docker` as a non-root user and enter the cloned directory with `cd civ5_server_docker`
 2. Install Civilization V and the Civilization V SDK (`CivilizationV_Server.exe`) into the `civ5game` directory using the provided install script: `./install_civ.sh <steam_username> <steam_password>`
 
 **Note:** Sometimes `steam_cmd` can SEGFAULT for no apparent reason, but re-running the install script over and over until the installs complete is a valid, if annoying, workaround.  You can also copy the files over manually, but using the install script is recommended.
