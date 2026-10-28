@@ -39,7 +39,7 @@ function perform_mouse_commands {
         xdotool windowfocus --sync "${window_id}"
         xdotool mousemove "${x_coordinate}" "${y_coordinate}"
         xdotool click 1
-        sleep 10
+        sleep 20
     done
 
     # Wait for the server to start
