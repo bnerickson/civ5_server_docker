@@ -1,4 +1,4 @@
-FROM fedora:44
+FROM fedora:45
 
 # Copy custom repo files IF THEY EXIST
 # Otherwise, the default behavior is copy
