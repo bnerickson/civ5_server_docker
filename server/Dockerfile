@@ -1,8 +1,7 @@
 FROM fedora:45
 
 # Copy custom repo files IF THEY EXIST
-# Otherwise, the default behavior is copy
-# nothing over and use the default repo files
+# Otherwise, the default behavior is copy nothing over and use the default repo files
 COPY fedora.repo* /etc/yum.repos.d/fedora.repo
 COPY fedora-updates.repo* /etc/yum.repos.d/fedora-updates.repo
 COPY fedora-cisco-openh264.repo* /etc/yum.repos.d/fedora-cisco-openh264.repo
@@ -17,15 +16,12 @@ ARG GPU_BUSID
 ARG GE_PROTON_VERSION
 ARG STEAM_DLLS
 ARG STEAM_INSTALL_SLEEP_TIMER
-# This is hard-coded because the attempt_restart.bash
-# script relies on exact x,y coordinates to start the
-# server
-# 24-bits is REQUIRED for Civ 5 to display when using
-# software rendering (llvmpipe)
+# This is hard-coded because the attempt_restart.bash script relies on exact x,y coordinates to
+# start the server
+# 24-bits is REQUIRED for Civ 5 to display when using software rendering (llvmpipe)
 ARG DESKTOP_RESOLUTION=1920x1080x24
 
-# Set environment variables that are originally
-# args used in the image build
+# Set environment variables that are originally args used in the image build
 ENV CIV_DATA_ROOT=${CIV_DATA_ROOT}
 ENV CONTAINER_USERNAME=${CONTAINER_USERNAME}
 ENV DISPLAY=${DISPLAY}
@@ -96,11 +92,10 @@ RUN groupadd --gid ${CONTAINER_GID} ${CONTAINER_USERNAME}
 RUN useradd --shell /bin/bash --create-home --uid ${CONTAINER_UID} --gid ${CONTAINER_GID} ${CONTAINER_USERNAME}
 
 # Install Steam base install for Windows via Winetricks
-# nocrashdialog to force civ5 to exit when crashing instead of
-# leaving a dialog box up.
+# nocrashdialog is set to force civ5 to exit when crashing instead of leaving a dialog box up
 RUN sudo --user=${CONTAINER_USERNAME} winetricks --force --unattended nocrashdialog steam
 
-# Copy our xorg configs over.
+# Copy our xorg configs over
 COPY ./xorg.conf.dummy.templ /etc/X11/xorg.conf.d/
 COPY ./xorg.conf.amd.templ /etc/X11/xorg.conf.d/
 COPY ./xorg.conf.intel.templ /etc/X11/xorg.conf.d/
@@ -124,10 +119,8 @@ sleep ${STEAM_INSTALL_SLEEP_TIMER}
 RUN DISPLAY_NUMBER=$(echo ${DISPLAY} | cut --delimiter ':' --fields 2) && rm --force /tmp/.X${DISPLAY_NUMBER}-lock
 
 # Fail if we failed to install steam
-# If this step fails, you may need to
-# increase the value of STEAM_INSTALL_SLEEP_TIMER
-# particularly if your Internet connection
-# is slow or the server itself is slow
+# If this step fails, increasing the value of STEAM_INSTALL_SLEEP_TIMER may help, particularly if
+# the Internet connection is slow or the server itself is slow
 RUN STEAM_DLLS_ARRAY=(${STEAM_DLLS}) && for dll in "${STEAM_DLLS_ARRAY[@]}"; do if [ ! -f "/home/${CONTAINER_USERNAME}/.wine/drive_c/Program Files (x86)/Steam/${dll}" ]; then echo "failed to find dll ${dll}" && exit 1; fi; done
 
 # Install GE-Proton
@@ -142,30 +135,25 @@ RUN rm /home/${CONTAINER_USERNAME}/proton_ge_downloader.bash
 RUN PROTON_LATEST_PATH=$(find /home/${CONTAINER_USERNAME}/proton/GE-Proton* -maxdepth 0 -type d | sort --reverse --ignore-case --version-sort --ignore-leading-blanks | grep --extended --max-count 1 "GE-Proton.*") && ln --symbolic --force ${PROTON_LATEST_PATH} /home/${CONTAINER_USERNAME}/proton/GE-Proton && chown --no-dereference ${CONTAINER_USERNAME}:${CONTAINER_USERNAME} /home/${CONTAINER_USERNAME}/proton/GE-Proton
 
 # Setup umu wine prefix
-# The umu-run command should fail because the
-# image build does not have privleges to create
-# containers, but prerequisites are downloaded
-# and nocrashdialog is set which is what we want
+# The umu-run command should fail because the image build does not have privleges to create
+# containers, but prerequisites are downloaded and nocrashdialog is set which is what we want
 RUN cd /home/${CONTAINER_USERNAME} && (sudo --user=${CONTAINER_USERNAME} -E WINEDEBUG=+seh,+warn,+loaddll,+timestamp WINEDLLOVERRIDES="lsteamclient=d;" PROTONPATH="/home/${CONTAINER_USERNAME}/proton/GE-Proton" umu-run winetricks nocrashdialog || true)
 
-# Install notification script that notifies players
-# using ntfy and/or discord whenever a player disconnects
-# whose turn is outstanding unless there is no change
+# Install notification script that notifies players using ntfy and/or discord whenever a player
+# disconnects whose turn is outstanding unless there is no change
 COPY ./tx_player_turns.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/tx_player_turns.bash
 COPY ./json_file_helper.py /usr/local/bin/
 RUN chmod +x /usr/local/bin/json_file_helper.py
 
-# Install weekly notification script that notifies players
-# using ntfy and/or discord whose turn is outstanding
-# regardless of current status
-# This checks for all players that have not pressed "Next Turn"
-# yet
+# Install weekly notification script that notifies players using ntfy and/or discord whose turn is
+# outstanding regardless of current status
+# This checks for all players that have not pressed "Next Turn" yet and includes players that left
+# the game open after pressing "Next Turn", preventing the tx_player_turns.bash script from running
 COPY ./scheduled_turn_notifications.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/scheduled_turn_notifications.bash
 
-# Install server down notification script that notifies players
-# when the civ5 server has crashed
+# Install server down notification script that notifies players when the civ5 server has crashed
 COPY ./server_down_notifier.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/server_down_notifier.bash
 
@@ -174,12 +162,10 @@ COPY ./civ5_cron_jobs /etc/cron.d/civ5_cron_jobs
 RUN chmod 0644 /etc/cron.d/civ5_cron_jobs
 RUN crontab /etc/cron.d/civ5_cron_jobs
 
-# Install supervisor configuration for list of processes
-# to execute
+# Install supervisor configuration for list of processes to execute
 COPY ./supervisord.conf /etc/supervisord.conf
 
-# Install a debug script to query the dbs used for
-# triggered and weekly notifications
+# Install a debug script to query the dbs used for triggered and weekly notifications
 COPY ./debug_script.bash /usr/local/bin/
 RUN chmod +x /usr/local/bin/debug_script.bash
 

@@ -111,10 +111,10 @@ def parse_args():
 
 def main():
     """
-    main(): main function parses args and executes the get functions.
+    main(): main function parses args and executes the get functions
 
     Inputs:
-        args: Arguments given by the user.
+        args: Arguments given by the user
     Outputs:
         None
     """

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe
 set -o errexit -o nounset -o pipefail
-# Force subshells (function calls) to inherit errexit.
+# Force subshells (function calls) to inherit errexit
 shopt -s inherit_errexit
 
 DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
@@ -18,8 +18,7 @@ if [ "${CIV5_PID}" != "" ]; then
     exit 0
 fi
 
-# We use this as evidence the server crashed for
-# notification purposes.
+# We use this as evidence the server crashed for notification purposes
 python3 /usr/local/bin/json_file_helper.py --config "${JSON_FILE}" set --parameter crash --value True
 
 notification_string="$(date +"%Y%m%d-%H%M%S") THE SYSTEM IS DOWN: Civilization V has crashed.  Attempting to restart automatically (ETA 5 minutes)..."

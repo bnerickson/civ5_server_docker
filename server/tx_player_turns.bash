@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
 
-# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe
 set -o errexit -o nounset -o pipefail
-# Force subshells (function calls) to inherit errexit.
+# Force subshells (function calls) to inherit errexit
 shopt -s inherit_errexit
 
 DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
 DISCORD_WEBHOOK_TOKEN=$(cat "${DISCORD_WEBHOOK_TOKEN_FILE}")
-# If this is our initial execution then we fire a
-# notification regardless of whether a change in
-# player turn status has occurred.
+# If this is our initial execution then we fire a notification regardless of whether a change in
+# player turn status has occurred
 INITIAL_SCRIPT_EXECUTION=1
-# This JSON file is updated whenever a player disconnects
-# from civ.  A user could abuse this by constantly connecting,
-# selecting "Next Turn", re-connecting, cancelling their "Next
-# Turn", disconnecting, and so on and so forth.  However, this
-# is tedious and annoying to do.
+# This JSON file is updated whenever a player disconnects from civ
+# A user could attempt a silly DDoS by constantly connecting, selecting "Next Turn", re-connecting,
+# cancelling their "Next Turn", disconnecting, and so on and so forth
 JSON_FILE="${CIV_DATA_ROOT}/disconnected_turn_status.json"
 MAXIMUM_LOOP_COUNT=12
 NTFY_TOPIC=$(cat "${NTFY_TOPIC_FILE}")
@@ -30,50 +27,47 @@ function db_handler {
 
     while : ; do
         if (( loop_counter > MAXIMUM_LOOP_COUNT )); then
-            # Exit (give up) if we have looped 12 times (1 minute).
-            # supervisord will restart this script.
+            # Exit (give up) if we have looped 12 times (1 minute) supervisord will restart this
+            # script
             printf "Unable to extract TurnNum and PlayersWhoNeedToTakeTheirTurn values found in %s.\nTurnNum: %s\nPlayersWhoNeedToTakeTheirTurn: %s\nNot sending notification and exiting...\n" "${SQLITE_DB}" "${turn_num}" "${player_str}"
             exit 1
         fi
 
-        # Query the sqlite DB for the values we need.
-        # We disable errexit because we don't want to
-        # bomb the script if the query fails and will
-        # retry instead.
+        # Query the sqlite DB for the values we need
+        # We disable errexit because we don't want to bomb the script if the query fails and will
+        # retry instead
         set +o errexit
         sqlite_query=$(sqlite3 "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ".mode csv" "SELECT * FROM SimpleValues;")
         sql_query_exit_status="${?}"
         set -o errexit
 
         if [ "${sql_query_exit_status}" -ne 0 ]; then
-            # Loop if the sql query failed.
+            # Loop if the sql query failed
             sleep 5
             loop_counter=$((loop_counter+1))
             continue
         fi
 
-        # Replace Unit Separator character wtih a comma+space.
+        # Replace Unit Separator character wtih a comma+space
         sqlite_query_formatted=$(echo "${sqlite_query}" | sed $'s/\x1f/, /g')
         while IFS= read -r line; do
             if [[ "${line}" =~ ^TurnNum,.* ]]; then
                 # Remove DOS carriage return with sed statement
                 turn_num=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/\r$//')
             elif [[ "${line}" =~ ^PlayersWhoNeedToTakeTheirTurn,.* ]]; then
-                # Remove the leading and trailing quotes and commas
-                # when there are multiple players.  The final sed
-                # removes DOS carriage returns.
-                player_str=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/^"//g' | sed 's/, ".$//g' | sed 's/\r$//')
+                # Remove the leading and trailing quotes and commas when there are multiple players
+                # The final sed removes DOS carriage returns
+                player_str=$(echo "${line}" | cut --delimiter ',' --fields 2- | sed 's/^"//g' | sed 's/\^_/, /g' | sed 's/, ".$//g' | sed 's/\r$//')
             fi
         done <<< "${sqlite_query_formatted}"
 
-        # Verify the fields we extracted are not empty (which can happen).
+        # Verify the fields we extracted are not empty (which can happen)
         if [ "${player_str}" != "" ] && [ "${turn_num}" != "" ]; then
-            # This is a sanity check to verify that the data in the SQLite DB
-            # was updated successfully.  We check at least twice, and if the
-            # values are the same for both checks then we'll assume they're
-            # correct and exit the loop.  If the values keep changing, then
-            # we continue looping until we reach MAXIMUM_LOOP_COUNT or until
-            # the values "stabilize".
+            # This is a sanity check to verify that the data in the SQLite DB was updated
+            # successfully; We check at least twice, and if the values are the same for both checks
+            # then we'll assume they're correct and exit the loop.  If the values keep changing,
+            # then we continue looping until we reach MAXIMUM_LOOP_COUNT or until the values
+            # "stabilize"
             if [ "${player_str}" != "${cached_player_str}" ] || [ "${turn_num}" != "${cached_turn_num}" ]; then
                 cached_player_str="${player_str}"
                 cached_turn_num="${turn_num}"
@@ -114,17 +108,15 @@ function db_handler {
             INITIAL_SCRIPT_EXECUTION=0
         fi
         if [ "${NTFY_TOPIC}" != "" ]; then
-            # notifications are best effort. We
-            # don't want to crash this process if
-            # a notification failed to process.
+            # Notifications are best effort
+            # We don't want to crash this process if a notification failed to process
             set +o errexit
             curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
             set -o errexit
         fi
         if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
-            # notifications are best effort. We
-            # don't want to crash this process if
-            # a notification failed to process.
+            # Notifications are best effort
+            # We don't want to crash this process if a notification failed to process
             set +o errexit
             curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
             set -o errexit
@@ -133,20 +125,18 @@ function db_handler {
 }
 
 function main {
-    # Create the json config file if it does not exist.
+    # Create the json config file if it does not exist
     if [ ! -f "${JSON_FILE}" ]; then
         echo '{}' > "${JSON_FILE}"
     fi
 
     initial_db=0
 
-    # This loop handles the edge case when the sqlite DB has not
-    # been created yet.
+    # This loop handles the edge case when the sqlite DB has not been created yet
     while : ; do
         printf "Verifying %s file is non-empty...\n" "${SQLITE_DB}"
-        # Note that if we manually create the file here, then Civ V
-        # fails to create/update the database, therefore we wait here
-        # for Civ V to create it itself.
+        # Note that if we manually create the file here, then Civ V fails to create/update the
+        # database, therefore we wait here for Civ V to create it itself
         if [ ! -s "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}" ]; then
             initial_db=1
             sleep 30
@@ -161,8 +151,7 @@ function main {
         break
     done
 
-    # This is the main loop that handles updates to the sqlite DB
-    # after it has been created.
+    # This is the main loop that handles updates to the sqlite DB after it has been created
     while : ; do
         printf "Waiting for update to SQLite file %s...\n" "${SQLITE_DB}"
         inotifywait -e modify -q "${CIV_DATA_ROOT}/ModUserData/${SQLITE_DB}"

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe
 set -o errexit -o nounset -o pipefail
-# Force subshells (function calls) to inherit errexit.
+# Force subshells (function calls) to inherit errexit
 shopt -s inherit_errexit
 
 # Fetch the dir where this bash script is
@@ -30,8 +30,7 @@ DISCORD_WEBHOOK_ID=${DISCORD_WEBHOOK_ID:-""}
 DISCORD_WEBHOOK_TOKEN=${DISCORD_WEBHOOK_TOKEN:-""}
 
 # Check if container is running and exit if so
-# Updating Civ5 data files while Civ5 is running
-# WILL cause Civ5 to crash
+# Updating Civ5 data files while Civ5 is running WILL cause Civ5 to crash
 docker_running_check=$(docker ps --filter name="container_${CONTAINER_NAME}" --quiet)
 if [ "${docker_running_check}" != "" ]; then
     echo "Container container_${CONTAINER_NAME} is currently running (${docker_running_check}), exiting"

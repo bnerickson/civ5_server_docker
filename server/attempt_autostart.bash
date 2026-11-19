@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# The coordinates in the mousemove commands are based on
-# a fixed desktop resolution of 1600x900.  If a custom
-# desktop resolution is set, ALL of the coordinates below
-# need to be updated.
+# The coordinates in the mousemove commands are based on a fixed desktop resolution of 1600x900
+# If a custom desktop resolution is set, ALL of the coordinates below MUST be updated
 
-# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe
 set -o errexit -o nounset -o pipefail
-# Force subshells (function calls) to inherit errexit.
+# Force subshells (function calls) to inherit errexit
 shopt -s inherit_errexit
 
 DISCORD_WEBHOOK_ID=$(cat "${DISCORD_WEBHOOK_ID_FILE}")
@@ -49,17 +47,15 @@ function perform_mouse_commands {
 
 function send_notification {
     if [ "${NTFY_TOPIC}" != "" ]; then
-        # notifications are best effort. We
-        # don't want to crash this process if
-        # a notification failed to process.
+        # Notifications are best effort
+        # We don't want to crash this process if a notification failed to process
         set +o errexit
         curl -d "${notification_string}" ntfy.sh/"${NTFY_TOPIC}"
         set -o errexit
     fi
     if [ "${DISCORD_WEBHOOK_ID}" != "" ] && [ "${DISCORD_WEBHOOK_TOKEN}" != "" ]; then
-        # notifications are best effort. We
-        # don't want to crash this process if
-        # a notification failed to process.
+        # Notifications are best effort
+        # We don't want to crash this process if a notification failed to process
         set +o errexit
         curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${notification_string}"'"}' "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}"
         set -o errexit

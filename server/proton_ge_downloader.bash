@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Original script source: https://github.com/jerluc/proton-ge-downloader/tree/main
 
-# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe.
+# Exit on error, fail if an unset variable is referenced, and fail if a command fails in a pipe
 set -o errexit -o nounset -o pipefail
-# Force subshells (function calls) to inherit errexit.
+# Force subshells (function calls) to inherit errexit
 shopt -s inherit_errexit
 
 GE_PROTON_VERSION="${1}"
